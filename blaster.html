@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#070B1E">
+<title>Times Table Blaster</title>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --space:#070B1E; --space2:#111A3D; --panel:#151F45; --line:#2A3A7A;
+  --lime:#B6FF3B; --lime-dk:#7FC21A; --cyan:#3DE6FF; --magenta:#FF3D8A; --gold:#FFD23F;
+  --ink:#F3F6FF; --ink-dim:#A9B4DE;
+  --pad-h:224px; --entry-h:54px; --hud-h:46px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--space);color:var(--ink);
+  font-family:'Space Grotesk',system-ui,sans-serif;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;
+  height:100vh;height:100dvh;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+
+/* HUD */
+#hud{height:var(--hud-h);display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px;background:var(--space2);border-bottom:2px solid var(--line);font-weight:700;font-size:.85rem}
+#hud .grp{display:flex;align-items:center;gap:7px}
+.lbl{color:var(--ink-dim);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase}
+.val{font-family:'Bungee',cursive;font-size:1.05rem;color:var(--lime);line-height:1}
+#lives{display:flex;gap:4px}
+.life{width:16px;height:16px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.life.lost{background:#2A3560;box-shadow:none}
+#mute{font-size:1.1rem;background:none;border:none;color:var(--ink);cursor:pointer;padding:4px}
+
+/* SKY */
+#sky{position:relative;flex:1;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 120%,#1B2A6B 0%,var(--space) 60%)}
+#sky.shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:translate(0)}20%{transform:translate(-6px,3px)}40%{transform:translate(6px,-3px)}60%{transform:translate(-4px,2px)}80%{transform:translate(4px,-2px)}}
+.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:.7}
+.ast{position:absolute;top:0;left:0;width:76px;height:76px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bungee',cursive;font-size:1.05rem;color:var(--ink);
+  background:radial-gradient(circle at 35% 30%,#6B5D8A,#2E2748 65%,#1A1530);
+  box-shadow:inset -6px -8px 14px rgba(0,0,0,.55),0 0 0 2px rgba(255,255,255,.08),0 0 18px rgba(61,230,255,.25);
+  will-change:transform}
+.ast.danger{box-shadow:inset -6px -8px 14px rgba(0,0,0,.55),0 0 0 3px var(--magenta),0 0 22px var(--magenta)}
+#rocket{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-size:2.2rem;line-height:1;filter:drop-shadow(0 0 10px var(--cyan))}
+#laser{position:absolute;height:4px;background:linear-gradient(90deg,var(--lime),var(--cyan));
+  transform-origin:0 50%;opacity:0;border-radius:2px;box-shadow:0 0 10px var(--lime);pointer-events:none}
+#laser.fire{animation:laser .22s}
+@keyframes laser{0%{opacity:1}100%{opacity:0}}
+.pt{position:absolute;width:8px;height:8px;border-radius:50%;pointer-events:none;
+  transition:transform .55s cubic-bezier(.2,.8,.3,1),opacity .55s}
+.toast{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.6);
+  font-family:'Bungee',cursive;font-size:1.6rem;color:var(--gold);text-shadow:0 0 18px var(--gold);
+  pointer-events:none;animation:toast .9s forwards;white-space:nowrap}
+.toast.combo{color:var(--lime);text-shadow:0 0 18px var(--lime);font-size:1.25rem;top:30%}
+.toast.bad{color:var(--magenta);text-shadow:0 0 18px var(--magenta);font-size:1.15rem}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-60%) scale(1)}100%{opacity:0;transform:translate(-50%,-80%) scale(1)}}
+
+/* ENTRY + PAD */
+#entry{height:var(--entry-h);display:flex;align-items:center;justify-content:center;gap:10px;
+  background:var(--space2);border-top:2px solid var(--line)}
+#typed{min-width:120px;height:40px;padding:0 16px;border-radius:12px;background:#0B1330;border:2px solid var(--line);
+  font-family:'Bungee',cursive;font-size:1.4rem;color:var(--lime);display:flex;align-items:center;justify-content:flex-end;letter-spacing:.04em}
+#typed.wrong{animation:wrong .35s;border-color:var(--magenta);color:var(--magenta)}
+@keyframes wrong{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#typed:empty::before{content:"?";color:#3A4A8A}
+#pad{height:var(--pad-h);display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,1fr);gap:8px;
+  padding:8px 10px 10px;background:var(--space2)}
+.key{font-family:'Bungee',cursive;font-size:1.35rem;color:var(--ink);background:var(--panel);border:2px solid var(--line);
+  border-radius:14px;cursor:pointer;touch-action:manipulation;transition:transform .06s,background .06s}
+.key:active{transform:scale(.94);background:#22306A}
+.key.fire{background:var(--lime);color:#0A1A00;border-color:var(--lime-dk);font-size:1.05rem;box-shadow:0 0 16px rgba(182,255,59,.5)}
+.key.fire:active{background:var(--lime-dk)}
+.key.back{color:var(--magenta);font-size:1.2rem}
+
+/* OVERLAYS */
+.ov{position:fixed;inset:0;background:rgba(7,11,30,.94);display:flex;align-items:center;justify-content:center;padding:18px;z-index:20;overflow:auto}
+.ov.hidden{display:none}
+.box{width:100%;max-width:420px;background:var(--space2);border:2px solid var(--line);border-radius:22px;padding:22px 20px;text-align:center}
+h1{font-family:'Bungee',cursive;font-size:clamp(1.5rem,7vw,2.2rem);line-height:1.05;color:var(--lime);text-shadow:0 0 22px rgba(182,255,59,.5)}
+h1 span{color:var(--cyan);text-shadow:0 0 22px rgba(61,230,255,.5)}
+.sub{color:var(--ink-dim);margin:8px 0 18px;font-size:.95rem;font-weight:500}
+.sec{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);margin:14px 0 8px;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+.chip{font-family:'Bungee',cursive;font-size:.95rem;width:52px;height:44px;border-radius:12px;border:2px solid var(--line);
+  background:var(--panel);color:var(--ink-dim);cursor:pointer}
+.chip.on{background:var(--cyan);color:#041018;border-color:var(--cyan);box-shadow:0 0 12px rgba(61,230,255,.5)}
+.preset{font-family:inherit;font-weight:700;font-size:.85rem;padding:8px 12px;border-radius:999px;border:2px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.preset:active{background:var(--panel)}
+.preset.on{background:var(--cyan);color:#041018;border-color:var(--cyan);box-shadow:0 0 12px rgba(61,230,255,.5)}
+#pause{font-size:1.05rem;background:none;border:none;color:var(--ink);cursor:pointer;padding:4px}
+.desc{color:var(--ink-dim);font-size:.85rem;font-weight:500;min-height:2.4em;margin-top:8px}
+.big{margin-top:18px;width:100%;font-family:'Bungee',cursive;font-size:1.2rem;padding:16px;border-radius:16px;border:none;
+  background:var(--lime);color:#0A1A00;cursor:pointer;box-shadow:0 0 24px rgba(182,255,59,.45)}
+.big:active{transform:scale(.98)}
+.big.alt{background:transparent;color:var(--ink);border:2px solid var(--line);box-shadow:none;margin-top:10px;font-size:1rem}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:14px 0}
+.stat{background:var(--panel);border-radius:12px;padding:10px 6px}
+.stat .val{font-size:1.4rem}
+.stat .lbl{margin-top:4px}
+#finalScore{font-family:'Bungee',cursive;font-size:3rem;color:var(--gold);text-shadow:0 0 24px rgba(255,210,63,.6);line-height:1.1}
+#best{color:var(--ink-dim);font-weight:700;font-size:.85rem}
+#practice{background:#0B1330;border-radius:14px;padding:12px;text-align:left;font-weight:700;line-height:1.7}
+#practice .fact{display:inline-block;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:2px 9px;margin:3px 3px 0 0;font-family:'Bungee',cursive;font-size:.85rem;color:var(--gold)}
+#practice .ok{color:var(--lime)}
+.err{color:var(--magenta);font-weight:700;font-size:.85rem;min-height:1.2em;margin-top:8px}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="grp"><span class="lbl">Score</span><span class="val" id="score">0</span></div>
+    <div class="grp"><span class="lbl">Lvl</span><span class="val" id="level">1</span></div>
+    <div class="grp"><span class="lbl">Combo</span><span class="val" id="combo">0</span></div>
+    <div class="grp"><div id="lives"></div><button id="pause" aria-label="Pause">⏸</button><button id="mute" aria-label="Toggle sound">🔊</button></div>
+  </div>
+  <div id="sky"><div id="laser"></div><div id="rocket">🚀</div></div>
+  <div id="entry"><div id="typed" aria-live="polite"></div></div>
+  <div id="pad">
+    <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+    <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+    <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+    <button class="key back" data-k="back">⌫</button><button class="key" data-k="0">0</button><button class="key fire" data-k="fire">FIRE</button>
+  </div>
+</div>
+
+<div class="ov" id="start">
+  <div class="box">
+    <h1>TIMES TABLE<br><span>BLASTER</span></h1>
+    <p class="sub">Asteroids are falling. Type the answer and hit FIRE before they reach your rocket.</p>
+    <div class="sec">Pick your tables</div>
+    <div class="chips" id="chips"></div>
+    <div class="sec">Quick picks</div>
+    <div class="chips">
+      <button class="preset" data-p="2,3,4,5">Warm-up 2–5</button>
+      <button class="preset" data-p="6,7,8,9">The hard ones 6–9</button>
+      <button class="preset" data-p="10,11,12">Big 10–12</button>
+      <button class="preset" data-p="2,3,4,5,6,7,8,9,10,11,12">Everything</button>
+    </div>
+    <div class="sec">Speed</div>
+    <div class="chips spdrow" data-spd></div>
+    <p class="desc" data-spddesc></p>
+    <div class="err" id="err"></div>
+    <button class="big" id="go">LAUNCH 🚀</button>
+  </div>
+</div>
+
+<div class="ov hidden" id="paused">
+  <div class="box">
+    <div class="sec">Paused</div>
+    <h1 style="font-size:1.5rem">CHANGE SPEED</h1>
+    <div class="chips spdrow" data-spd style="margin-top:12px"></div>
+    <p class="desc" data-spddesc></p>
+    <button class="big" id="resume">RESUME</button>
+    <button class="big alt" id="quit">Quit to menu</button>
+  </div>
+</div>
+
+<div class="ov hidden" id="over">
+  <div class="box">
+    <div class="sec" id="overTitle">Mission over</div>
+    <div id="finalScore">0</div>
+    <div id="best">Best this session: 0</div>
+    <div class="stats">
+      <div class="stat"><div class="val" id="sLevel">1</div><div class="lbl">Level</div></div>
+      <div class="stat"><div class="val" id="sHits">0</div><div class="lbl">Blasted</div></div>
+      <div class="stat"><div class="val" id="sAcc">0%</div><div class="lbl">Accuracy</div></div>
+    </div>
+    <div class="sec">Practice these next</div>
+    <div id="practice"></div>
+    <button class="big" id="again">PLAY AGAIN</button>
+    <button class="big alt" id="change">Change tables</button>
+  </div>
+</div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const sky = $("sky"), typedEl = $("typed"), laser = $("laser"), rocket = $("rocket");
+
+/* ---------- audio (no assets, WebAudio beeps) ---------- */
+let actx = null, muted = false;
+function beep(freq, dur, type = "square", vol = .12, when = 0){
+  if(muted || !actx) return;
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, actx.currentTime + when);
+  g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + when + dur);
+  o.connect(g); g.connect(actx.destination);
+  o.start(actx.currentTime + when); o.stop(actx.currentTime + when + dur + .02);
+}
+const sfx = {
+  hit(){ beep(660,.08); beep(990,.12,"square",.12,.07); },
+  wrong(){ beep(160,.18,"sawtooth",.1); },
+  land(){ beep(300,.12,"sawtooth",.12); beep(180,.25,"sawtooth",.12,.1); },
+  level(){ [523,659,784,1047].forEach((f,i)=>beep(f,.14,"triangle",.14,i*.09)); },
+  over(){ [392,330,262,196].forEach((f,i)=>beep(f,.22,"triangle",.14,i*.16)); }
+};
+$("mute").onclick = () => { muted = !muted; $("mute").textContent = muted ? "🔇" : "🔊"; };
+
+/* ---------- stars ---------- */
+for(let i=0;i<40;i++){
+  const s = document.createElement("div"); s.className = "star";
+  s.style.left = Math.random()*100+"%"; s.style.top = Math.random()*100+"%";
+  s.style.opacity = (.25+Math.random()*.6).toFixed(2);
+  const sz = Math.random()<.2?3:2; s.style.width = s.style.height = sz+"px";
+  sky.appendChild(s);
+}
+
+/* ---------- setup screen ---------- */
+let tables = new Set([2,3,4,5]);
+const chipsEl = $("chips");
+for(let n=2;n<=12;n++){
+  const b = document.createElement("button"); b.className = "chip"; b.textContent = "×"+n; b.dataset.n = n;
+  b.onclick = () => { tables.has(n) ? tables.delete(n) : tables.add(n); paintChips(); };
+  chipsEl.appendChild(b);
+}
+function paintChips(){ chipsEl.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", tables.has(+c.dataset.n))); }
+document.querySelectorAll(".preset").forEach(p => p.onclick = () => { tables = new Set(p.dataset.p.split(",").map(Number)); paintChips(); });
+paintChips();
+
+/* ---------- speed profiles ---------- */
+const SPEEDS = [
+  {name:"Cruise", desc:"One asteroid at a time, slow and calm. Best for a table you're still learning.", fall:18000, gap:7000, max:1, ramp:.965, per:10, minFall:9500, minGap:4000},
+  {name:"Steady", desc:"Two at a time with room to think. The everyday setting.", fall:14000, gap:5200, max:2, ramp:.95, per:10, minFall:7000, minGap:2800},
+  {name:"Fast", desc:"Three at a time. For tables you already know, to make them automatic.", fall:10000, gap:3400, max:3, ramp:.93, per:8, minFall:4800, minGap:1700},
+  {name:"Hyper", desc:"Arcade chaos. Show-offs only.", fall:7500, gap:2400, max:4, ramp:.9, per:8, minFall:3500, minGap:1200},
+];
+let speed = SPEEDS[1];
+function renderSpeed(){
+  document.querySelectorAll("[data-spd]").forEach(row => {
+    row.innerHTML = "";
+    SPEEDS.forEach(s => {
+      const b = document.createElement("button"); b.className = "preset" + (s === speed ? " on" : ""); b.textContent = s.name;
+      b.onclick = () => setSpeed(s); row.appendChild(b);
+    });
+  });
+  document.querySelectorAll("[data-spddesc]").forEach(d => d.textContent = speed.desc);
+}
+function setSpeed(s){
+  speed = s; renderSpeed();
+  asteroids.forEach(a => a.speed = fallTime());   // live asteroids adopt the new pace immediately
+}
+renderSpeed();
+
+/* ---------- game state ---------- */
+let facts = [], weight = {}, stats = {};
+let asteroids = [], score = 0, level = 1, combo = 0, lives = 3, kills = 0, wrongPresses = 0;
+let typed = "", running = false, lastSpawn = 0, lastT = 0, raf = 0, bestScore = 0;
+let sessionMissed = {};
+
+function buildFacts(){
+  facts = []; weight = {}; stats = {};
+  tables.forEach(a => { for(let b=1;b<=12;b++){ const k = a+"×"+b; facts.push({k,a,b,ans:a*b}); weight[k] = 1; stats[k] = {ok:0,miss:0}; } });
+}
+function pickFact(){
+  const onScreen = new Set(asteroids.map(x => x.f.ans));
+  const pool = facts.filter(f => !onScreen.has(f.ans));
+  const src = pool.length ? pool : facts;
+  const total = src.reduce((s,f) => s + weight[f.k], 0);
+  let r = Math.random()*total;
+  for(const f of src){ r -= weight[f.k]; if(r <= 0) return f; }
+  return src[src.length-1];
+}
+function fallTime(){ return Math.max(speed.minFall, speed.fall * Math.pow(speed.ramp, level-1)); }
+function spawnGap(){ return Math.max(speed.minGap, speed.gap * Math.pow(speed.ramp, level-1)); }
+function maxOnScreen(){ return Math.min(5, speed.max + Math.floor((level-1)/4)); }
+
+function spawn(){
+  const f = pickFact();
+  const el = document.createElement("div"); el.className = "ast"; el.textContent = f.a+"×"+f.b;
+  const W = sky.clientWidth, lanes = 4, laneW = (W - 76 - 16) / (lanes-1);
+  const used = new Set(asteroids.filter(a => a.p < .22).map(a => a.lane));
+  let lane = Math.floor(Math.random()*lanes), tries = 0;
+  while(used.has(lane) && tries++ < 6) lane = Math.floor(Math.random()*lanes);
+  const x = 8 + lane*laneW + (Math.random()*14 - 7);
+  const a = {f, el, x, lane, p:0, born:performance.now(), speed: fallTime()};
+  el.style.transform = `translate(${x}px, -80px)`;
+  sky.appendChild(el); asteroids.push(a);
+}
+
+function loop(t){
+  if(!running) return;
+  const dt = Math.min(64, t - lastT); lastT = t;
+  const H = sky.clientHeight - 56;
+  for(const a of asteroids){
+    a.p += dt / a.speed;
+    const y = -80 + a.p * (H + 80);
+    a.el.style.transform = `translate(${a.x}px, ${y}px)`;
+    if(a.p > .72) a.el.classList.add("danger");
+  }
+  const landed = asteroids.filter(a => a.p >= 1);
+  landed.forEach(a => land(a));
+  if(asteroids.length < maxOnScreen() && t - lastSpawn > spawnGap()){ spawn(); lastSpawn = t; }
+  raf = requestAnimationFrame(loop);
+}
+
+function removeAst(a){ asteroids = asteroids.filter(x => x !== a); a.el.remove(); }
+
+function land(a){
+  if(running !== true) return;
+  removeAst(a);
+  sfx.land(); sky.classList.remove("shake"); void sky.offsetWidth; sky.classList.add("shake");
+  weight[a.f.k] = Math.min(8, weight[a.f.k] + 3); stats[a.f.k].miss++;
+  sessionMissed[a.f.k] = (sessionMissed[a.f.k]||0) + 1;
+  combo = 0; paintHud();
+  toast(`${a.f.a} × ${a.f.b} = ${a.f.ans}`, "bad");
+  lives--; paintLives();
+  if(lives <= 0) gameOver();
+}
+
+function toast(txt, cls = ""){
+  const d = document.createElement("div"); d.className = "toast "+cls; d.textContent = txt;
+  sky.appendChild(d); setTimeout(() => d.remove(), 950);
+}
+function particles(cx, cy, color){
+  for(let i=0;i<10;i++){
+    const p = document.createElement("div"); p.className = "pt";
+    p.style.left = cx+"px"; p.style.top = cy+"px"; p.style.background = i%2 ? color : "#fff";
+    sky.appendChild(p);
+    const ang = Math.random()*Math.PI*2, dist = 40 + Math.random()*60;
+    requestAnimationFrame(() => { p.style.transform = `translate(${Math.cos(ang)*dist}px, ${Math.sin(ang)*dist}px) scale(.2)`; p.style.opacity = "0"; });
+    setTimeout(() => p.remove(), 600);
+  }
+}
+function shootLaser(tx, ty){
+  const rx = sky.clientWidth/2, ry = sky.clientHeight - 24;
+  const dx = tx - rx, dy = ty - ry, len = Math.hypot(dx,dy), ang = Math.atan2(dy,dx);
+  laser.style.left = rx+"px"; laser.style.top = ry+"px"; laser.style.width = len+"px";
+  laser.style.transform = `rotate(${ang}rad)`;
+  laser.classList.remove("fire"); void laser.offsetWidth; laser.classList.add("fire");
+}
+
+function fire(){
+  if(!running || typed === "") return;
+  const n = +typed;
+  const matches = asteroids.filter(a => a.f.ans === n).sort((p,q) => q.p - p.p);
+  if(matches.length){
+    const a = matches[0];
+    const rt = performance.now() - a.born;
+    weight[a.f.k] = Math.max(.35, weight[a.f.k] * (rt < 3500 ? .6 : .85)); stats[a.f.k].ok++;
+    kills++; combo++;
+    const mult = combo >= 10 ? 4 : combo >= 5 ? 2 : 1;
+    const pts = 10 * level * mult; score += pts;
+    const m = a.el.getBoundingClientRect(), s = sky.getBoundingClientRect();
+    const cx = m.left - s.left + 38, cy = m.top - s.top + 38;
+    shootLaser(cx, cy); particles(cx, cy, "#B6FF3B");
+    asteroids = asteroids.filter(x => x !== a);
+    const cur = a.el.style.transform;
+    a.el.style.transition = "transform .28s ease-out, opacity .28s ease-out";
+    requestAnimationFrame(() => { a.el.style.transform = cur + " scale(1.9)"; a.el.style.opacity = "0"; });
+    setTimeout(() => a.el.remove(), 300);
+    sfx.hit();
+    if(combo === 5 || combo === 10 || (combo > 10 && combo % 5 === 0)) toast(`${combo}× COMBO!`, "combo");
+    const newLevel = 1 + Math.floor(kills / speed.per);
+    if(newLevel > level){ level = newLevel; sfx.level(); toast(`LEVEL ${level}!`); }
+  } else {
+    wrongPresses++; combo = 0; sfx.wrong();
+    typedEl.classList.remove("wrong"); void typedEl.offsetWidth; typedEl.classList.add("wrong");
+  }
+  typed = ""; paintTyped(); paintHud();
+}
+
+function key(k){
+  if(running !== true) return;
+  if(k === "fire") return fire();
+  if(k === "back"){ typed = typed.slice(0,-1); }
+  else if(typed.length < 3){ typed += k; }
+  paintTyped();
+}
+document.querySelectorAll(".key").forEach(b => {
+  b.addEventListener("pointerdown", e => { e.preventDefault(); key(b.dataset.k); });
+});
+window.addEventListener("keydown", e => {
+  if(e.key >= "0" && e.key <= "9") key(e.key);
+  else if(e.key === "Backspace") key("back");
+  else if(e.key === "Enter") key("fire");
+});
+
+function paintTyped(){ typedEl.textContent = typed; typedEl.classList.remove("wrong"); }
+function paintHud(){ $("score").textContent = score; $("level").textContent = level; $("combo").textContent = combo; }
+function paintLives(){
+  const L = $("lives"); L.innerHTML = "";
+  for(let i=0;i<3;i++){ const d = document.createElement("div"); d.className = "life"+(i < lives ? "" : " lost"); L.appendChild(d); }
+}
+
+function startGame(){
+  if(!tables.size){ $("err").textContent = "Pick at least one table to launch."; return; }
+  $("err").textContent = "";
+  if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+  if(actx && actx.state === "suspended") actx.resume();
+  buildFacts();
+  asteroids.forEach(a => a.el.remove()); asteroids = [];
+  score = 0; level = 1; combo = 0; lives = 3; kills = 0; wrongPresses = 0; typed = ""; sessionMissed = {};
+  paintHud(); paintLives(); paintTyped();
+  $("start").classList.add("hidden"); $("over").classList.add("hidden");
+  running = true; lastT = performance.now(); lastSpawn = lastT - 2500;
+  cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+}
+
+function gameOver(){
+  running = false; cancelAnimationFrame(raf); sfx.over();
+  bestScore = Math.max(bestScore, score);
+  $("finalScore").textContent = score;
+  $("best").textContent = "Best this session: " + bestScore;
+  $("overTitle").textContent = score === bestScore && score > 0 ? "New high score!" : "Mission over";
+  $("sLevel").textContent = level; $("sHits").textContent = kills;
+  const attempts = kills + wrongPresses;
+  $("sAcc").textContent = attempts ? Math.round(100*kills/attempts) + "%" : "–";
+  const weak = Object.entries(sessionMissed).sort((a,b) => b[1]-a[1]).slice(0,6);
+  const P = $("practice");
+  if(weak.length){
+    P.innerHTML = "These got past you: " + weak.map(([k]) => {
+      const f = facts.find(x => x.k === k); return `<span class="fact">${f.a} × ${f.b} = ${f.ans}</span>`;
+    }).join("");
+  } else {
+    P.innerHTML = `<span class="ok">Nothing got past you. Every asteroid blasted!</span>`;
+  }
+  setTimeout(() => $("over").classList.remove("hidden"), 500);
+}
+
+function pauseGame(){
+  if(running !== true) return;
+  running = "paused"; cancelAnimationFrame(raf);
+  $("paused").classList.remove("hidden");
+}
+function resumeGame(){
+  if(running !== "paused") return;
+  $("paused").classList.add("hidden");
+  running = true; lastT = performance.now(); lastSpawn = lastT - spawnGap() + 1500;
+  raf = requestAnimationFrame(loop);
+}
+$("pause").onclick = pauseGame;
+$("resume").onclick = resumeGame;
+$("quit").onclick = () => {
+  running = false; cancelAnimationFrame(raf);
+  asteroids.forEach(a => a.el.remove()); asteroids = [];
+  $("paused").classList.add("hidden"); $("start").classList.remove("hidden");
+};
+$("go").onclick = startGame;
+$("again").onclick = startGame;
+$("change").onclick = () => { $("over").classList.add("hidden"); $("start").classList.remove("hidden"); };
+
+/* pause when the tab/app goes to the background so she doesn't lose lives unfairly */
+document.addEventListener("visibilitychange", () => { if(document.hidden) pauseGame(); });
+})();
+</script>
+</body>
+</html>

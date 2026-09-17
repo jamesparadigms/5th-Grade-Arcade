@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central States Trail Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pine:#1E3A2F; --pine-soft:#40594C; --paper:#EFF5F1; --card:#FFFFFF;
+  --poppy:#E8743B; --poppy-deep:#C85A24; --sky:#BFD9CD;
+  --ok:#2F8F5B; --ok-bg:#E3F2E9; --no:#C8503C; --no-bg:#F9E8E4;
+  --line:#D5E2DA; --radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',system-ui,sans-serif;color:var(--pine);
+  background:var(--paper);
+  background-image:radial-gradient(circle at 85% 8%, #FBE9DC 0%, transparent 34%),
+                   radial-gradient(circle at 8% 95%, #E2EFE8 0%, transparent 40%);
+  min-height:100vh;min-height:100dvh;padding:6px 10px 12px;
+}
+.wrap{max-width:680px;margin:0 auto}
+header{text-align:center;margin-bottom:2px}
+.kicker{display:none}
+h1{font-family:'Baloo 2',cursive;font-size:clamp(1.15rem,3.6vw,1.45rem);line-height:1.05;letter-spacing:-.01em}
+.tabs{display:flex;gap:7px;justify-content:center;margin:6px 0 6px;flex-wrap:wrap}
+.tab{
+  font:inherit;font-weight:800;font-size:.92rem;color:var(--pine-soft);
+  background:var(--card);border:2px solid var(--line);border-radius:999px;
+  padding:7px 16px;cursor:pointer;transition:transform .12s,background .12s,color .12s;
+}
+.tab:hover{transform:translateY(-1px)}
+.tab[aria-selected="true"]{background:var(--pine);border-color:var(--pine);color:#fff}
+.tab:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--poppy);outline-offset:2px}
+.card{
+  background:var(--card);border-radius:var(--radius);
+  box-shadow:0 8px 26px rgba(30,58,47,.10),0 1px 0 rgba(30,58,47,.05);
+  padding:8px 12px 10px;
+}
+.scorebar{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-weight:800;font-size:.8rem}
+.chip{background:var(--paper);border-radius:999px;padding:5px 13px}
+.chip .n{color:var(--poppy-deep)}
+.prompt{font-family:'Baloo 2',cursive;font-size:clamp(1.05rem,3.5vw,1.3rem);text-align:center;margin:2px 0 6px;min-height:1.3em}
+.prompt .word{color:var(--poppy-deep)}
+.mapbox{display:flex;justify-content:center}
+svg#map{height:min(300px,34dvh);width:auto;max-width:92vw}
+.st{fill:#E7F0EA;stroke:var(--pine);stroke-width:2.5;transition:fill .15s}
+.st.hl{fill:var(--poppy)}
+.st.dim{opacity:.45}
+.mode-find .st{cursor:pointer}
+body{touch-action:manipulation}
+.mode-find .st:hover{fill:var(--sky)}
+.st.flash-ok{fill:var(--ok)}
+.st.flash-no{fill:var(--no)}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.choice{
+  font:inherit;font-weight:800;font-size:1rem;color:var(--pine);
+  background:var(--paper);border:2px solid var(--line);border-radius:14px;
+  padding:10px 8px;cursor:pointer;transition:transform .1s,background .12s;
+}
+.choice:hover{transform:translateY(-1px);background:var(--sky)}
+@media (max-height:740px){svg#map{height:min(240px,30dvh)}.choice{padding:8px 8px;font-size:.92rem}h1{font-size:1.1rem}}
+.choice.ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.choice.no{background:var(--no-bg);border-color:var(--no);color:var(--no)}
+.choice:disabled{cursor:default}
+.spellrow{display:flex;gap:10px;margin-top:8px}
+input#spell{
+  flex:1;font:inherit;font-weight:700;font-size:1.15rem;color:var(--pine);
+  border:2px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--paper);
+}
+.btn{
+  font:inherit;font-weight:800;color:#fff;background:var(--poppy);border:none;
+  border-radius:14px;padding:12px 22px;cursor:pointer;transition:transform .1s,background .12s;
+}
+.btn:hover{background:var(--poppy-deep);transform:translateY(-1px)}
+.btn.ghost{background:var(--pine)}
+.letters{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:6px;min-height:0}
+.lt{
+  font-family:'Baloo 2',cursive;font-weight:700;font-size:1.15rem;width:30px;height:34px;
+  display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--paper);
+}
+.lt.ok{background:var(--ok-bg);color:var(--ok)}
+.lt.no{background:var(--no-bg);color:var(--no)}
+.lt.sp{background:transparent;width:12px}
+.feedback{text-align:center;font-weight:800;margin-top:6px;min-height:1.2em;font-size:.92rem}
+.feedback.good{color:var(--ok)} .feedback.bad{color:var(--no)}
+.next-row{display:flex;justify-content:center;margin-top:8px}
+.hidden{display:none !important}
+.summary{text-align:center}
+.summary h2{font-family:'Baloo 2',cursive;font-size:1.7rem;margin-bottom:6px}
+.summary .big{font-family:'Baloo 2',cursive;font-size:3rem;color:var(--poppy-deep);line-height:1}
+.missed{margin:14px auto 4px;max-width:400px;text-align:left;background:var(--paper);border-radius:14px;padding:12px 16px;font-weight:600}
+.missed b{color:var(--poppy-deep)}
+footer{display:none}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+@media (max-width:430px){.choices{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Trail Quiz &bull; 13 States</div>
+    <h1>Central States &amp; Capitals</h1>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Quiz mode">
+    <button class="tab" role="tab" aria-selected="true" data-mode="find">1 &bull; Find it</button>
+    <button class="tab" role="tab" aria-selected="false" data-mode="capital">2 &bull; Capitals</button>
+    <button class="tab" role="tab" aria-selected="false" data-mode="spell">3 &bull; Spelling</button>
+  </div>
+
+  <div class="card" id="card">
+    <div class="scorebar">
+      <span class="chip">Question <span class="n" id="qnum">1</span> / <span id="qtot">13</span></span>
+      <span class="chip">Score <span class="n" id="score">0</span></span>
+    </div>
+
+    <div id="quiz-area">
+      <p class="prompt" id="prompt"></p>
+      <div class="mapbox" id="mapbox">
+        <svg id="map" viewBox="0 0 452 678" role="img" aria-label="Map of the western United States">
+<path class="st" data-state="Texas" d="M118.5,367.5 L158.4,367.5 L158.4,422.9 L160.1,422.6 L165.0,428.1 L167.7,427.1 L174.7,427.5 L176.2,432.9 L180.7,432.6 L185.5,435.1 L189.8,434.8 L191.7,437.2 L194.4,434.5 L198.6,435.8 L200.5,438.9 L203.6,439.4 L205.3,443.3 L209.1,439.5 L214.3,441.7 L216.2,444.1 L218.8,443.0 L220.6,446.6 L226.1,440.1 L227.7,443.4 L232.5,443.4 L237.1,445.5 L238.8,448.0 L243.1,443.6 L247.8,442.2 L250.0,443.7 L255.2,440.9 L256.4,442.5 L262.0,442.6 L263.5,440.1 L269.1,443.0 L271.3,446.2 L279.7,449.4 L282.0,452.0 L286.4,450.6 L289.5,451.9 L289.5,496.4 L294.3,502.6 L294.4,508.9 L300.5,520.5 L300.8,526.6 L298.5,534.0 L296.4,536.9 L297.1,540.9 L295.5,543.8 L297.2,549.3 L292.0,559.5 L294.0,562.3 L290.3,562.5 L278.9,566.4 L274.8,564.2 L274.1,559.5 L271.2,562.8 L269.1,562.0 L268.0,566.1 L270.3,567.8 L270.7,573.1 L266.6,578.8 L260.0,585.8 L246.7,593.3 L245.4,592.1 L241.4,594.0 L241.3,592.2 L235.9,593.5 L233.3,589.9 L231.8,590.7 L237.6,598.0 L233.3,600.4 L229.4,599.0 L228.8,604.1 L223.8,609.5 L218.8,619.3 L215.5,629.7 L213.1,628.9 L212.5,632.6 L215.0,631.7 L213.8,639.2 L212.1,639.5 L212.0,643.8 L214.1,646.1 L214.7,654.7 L217.1,657.7 L217.7,663.2 L219.6,668.0 L212.9,671.0 L210.1,667.3 L204.9,665.9 L198.0,666.2 L192.1,661.5 L187.7,661.0 L184.3,657.2 L179.7,656.0 L176.6,652.4 L174.5,643.8 L170.6,638.6 L171.1,634.2 L169.2,629.5 L169.8,625.4 L167.1,620.9 L164.8,620.4 L161.0,616.4 L159.8,611.2 L156.6,606.5 L151.9,602.6 L149.6,594.0 L147.4,591.6 L144.5,584.7 L143.6,579.1 L140.8,575.0 L136.1,571.4 L135.0,568.9 L130.7,566.7 L127.3,560.4 L117.7,559.0 L111.9,559.3 L106.9,557.1 L105.9,560.1 L100.6,561.1 L96.6,567.0 L94.2,576.6 L92.9,576.7 L89.8,582.4 L86.2,582.5 L80.8,578.1 L67.2,571.1 L64.5,567.3 L59.2,563.7 L55.5,555.6 L55.3,548.2 L51.5,542.3 L50.7,537.1 L48.3,533.8 L39.7,529.0 L35.1,522.4 L31.4,520.0 L27.4,514.4 L21.9,511.4 L18.0,503.9 L14.8,502.3 L12.2,499.0 L12.8,496.2 L90.9,496.2 L91.5,367.5Z"/>
+<path class="st" data-state="Oklahoma" d="M156.5,353.2 L276.8,353.2 L276.8,367.5 L280.9,399.1 L279.7,449.4 L271.3,446.2 L269.1,443.0 L263.5,440.1 L262.0,442.6 L256.4,442.5 L255.2,440.9 L250.0,443.7 L247.8,442.2 L243.1,443.6 L238.8,448.0 L237.1,445.5 L232.5,443.4 L227.7,443.4 L226.1,440.1 L220.6,446.6 L218.8,443.0 L216.2,444.1 L214.3,441.7 L209.1,439.5 L205.3,443.3 L203.6,439.4 L200.5,438.9 L198.6,435.8 L194.4,434.5 L191.7,437.2 L189.8,434.8 L185.5,435.1 L180.7,432.6 L176.2,432.9 L174.7,427.5 L167.7,427.1 L165.0,428.1 L160.1,422.6 L158.4,422.9 L158.4,367.5 L92.4,367.5 L92.4,353.2Z"/>
+<path class="st" data-state="Arkansas" d="M280.0,367.5 L375.0,367.6 L377.0,373.1 L373.6,376.5 L370.1,381.9 L384.3,381.9 L383.6,387.2 L380.3,388.8 L379.6,393.1 L375.5,397.8 L375.9,404.7 L373.7,409.7 L371.5,410.5 L372.9,413.0 L369.4,415.2 L367.8,420.1 L365.5,421.3 L365.9,427.0 L361.9,428.5 L362.0,430.4 L357.5,435.1 L358.8,438.3 L354.8,442.8 L351.3,451.6 L355.2,455.3 L353.2,457.7 L354.4,463.6 L352.8,467.6 L289.5,467.1 L289.5,451.9 L286.4,450.6 L282.0,452.0 L279.7,449.4 L280.9,399.1 L276.8,367.5Z"/>
+<path class="st" data-state="Louisiana" d="M299.0,467.1 L352.8,467.6 L354.8,470.8 L353.2,472.1 L353.0,477.9 L356.2,481.5 L356.7,489.9 L354.1,496.5 L348.9,500.6 L347.6,507.0 L345.4,506.4 L345.0,516.9 L342.4,517.2 L344.0,522.8 L342.4,524.9 L384.0,524.9 L381.8,534.3 L385.4,540.5 L386.3,545.2 L388.9,548.2 L382.4,552.1 L381.9,555.0 L387.2,556.8 L389.5,552.3 L394.1,556.8 L393.7,560.4 L391.1,562.0 L386.1,560.6 L386.7,563.3 L385.0,567.3 L389.3,570.9 L396.0,572.0 L398.4,576.3 L400.3,576.9 L396.9,581.7 L393.0,580.8 L389.7,575.8 L381.7,573.1 L381.7,568.3 L377.7,569.8 L377.9,573.9 L376.1,577.7 L373.2,578.3 L371.1,574.1 L366.0,573.9 L364.2,578.3 L360.8,579.5 L357.2,576.9 L354.3,576.6 L351.5,569.5 L346.6,566.4 L344.7,566.9 L342.8,560.9 L337.0,561.7 L336.8,558.1 L331.2,561.5 L331.9,564.2 L327.6,566.7 L320.8,565.5 L313.0,561.5 L307.4,559.8 L295.5,561.2 L294.0,562.3 L292.0,559.5 L297.2,549.3 L295.5,543.8 L297.1,540.9 L296.4,536.9 L298.5,534.0 L300.8,526.6 L300.5,520.5 L294.4,508.9 L294.3,502.6 L289.5,496.4 L289.5,467.1Z"/>
+<path class="st" data-state="Missouri" d="M338.1,250.0 L340.3,249.8 L344.8,255.6 L347.2,256.6 L345.3,260.6 L345.5,266.4 L348.3,275.2 L355.0,282.6 L362.4,288.7 L363.8,298.1 L365.5,299.8 L368.1,297.1 L372.9,298.4 L376.0,300.4 L373.8,303.9 L374.4,306.5 L370.7,313.9 L370.6,318.4 L377.1,324.2 L379.5,328.0 L381.9,327.4 L389.0,333.5 L389.0,337.9 L390.8,343.3 L389.0,345.2 L394.0,353.4 L397.5,353.7 L395.6,365.3 L392.4,364.0 L391.2,367.6 L388.5,367.6 L388.7,374.7 L384.3,381.9 L370.1,381.9 L373.6,376.5 L377.0,373.1 L375.0,367.6 L276.8,367.5 L277.0,291.5 L272.3,290.1 L268.8,283.3 L266.0,280.5 L270.9,272.2 L263.8,270.0 L256.2,259.8 L251.5,250.6 L276.5,251.1Z"/>
+<path class="st" data-state="Kansas" d="M116.5,267.4 L261.7,267.4 L263.8,270.0 L270.9,272.2 L266.0,280.5 L268.8,283.3 L272.3,290.1 L277.0,291.5 L276.8,353.2 L113.5,353.4 L113.2,267.4Z"/>
+<path class="st" data-state="Nebraska" d="M85.3,181.5 L191.4,181.7 L192.1,183.1 L203.5,188.3 L206.1,185.4 L209.2,186.1 L219.6,186.1 L231.2,191.4 L232.6,195.5 L236.6,196.2 L240.6,209.1 L243.6,211.0 L245.0,216.0 L243.7,219.4 L244.3,223.3 L248.2,225.9 L248.0,233.1 L250.2,239.5 L249.0,246.8 L251.5,250.6 L256.2,259.8 L261.7,267.4 L113.2,267.4 L113.2,238.7 L69.2,238.7 L69.2,181.5Z"/>
+<path class="st" data-state="South Dakota" d="M69.4,97.4 L234.1,97.7 L233.6,101.0 L227.6,107.1 L231.4,112.6 L236.5,115.9 L236.5,167.3 L233.6,167.9 L234.8,170.2 L234.1,175.3 L236.8,178.1 L235.2,180.1 L234.4,185.8 L232.5,190.0 L236.6,196.2 L232.6,195.5 L231.2,191.4 L219.6,186.1 L209.2,186.1 L206.1,185.4 L203.5,188.3 L192.1,183.1 L191.4,181.7 L69.2,181.5Z"/>
+<path class="st" data-state="North Dakota" d="M219.4,10.0 L222.3,19.1 L220.8,23.0 L221.5,34.6 L223.2,40.1 L227.6,49.8 L228.3,68.1 L229.1,69.4 L228.8,77.0 L230.6,83.3 L233.2,86.3 L234.1,97.7 L69.4,97.4 L69.4,10.0Z"/>
+<path class="st" data-state="Minnesota" d="M334.1,75.6 L332.4,74.4 L327.9,76.7 L327.9,93.6 L326.6,95.4 L320.3,97.7 L315.3,103.8 L314.9,107.9 L317.4,108.2 L320.2,111.8 L317.7,116.2 L318.2,121.1 L316.6,131.6 L322.4,136.7 L327.0,137.2 L329.3,140.3 L336.0,143.5 L337.1,147.2 L343.4,152.1 L346.8,153.2 L351.1,159.4 L350.5,164.0 L351.7,167.3 L236.5,167.3 L236.5,115.9 L231.4,112.6 L227.6,107.1 L233.6,101.0 L234.1,97.7 L233.2,86.3 L230.6,83.3 L228.8,77.0 L229.1,69.4 L228.3,68.1 L227.6,49.8 L223.2,40.1 L221.5,34.6 L220.8,23.0 L222.3,19.1 L219.4,10.0 L265.0,10.0 L265.0,-1.0 L269.4,-0.6 L272.3,1.5 L275.2,16.4 L277.4,18.1 L284.7,18.6 L285.5,20.0 L294.0,20.7 L294.9,23.8 L302.1,23.0 L302.1,21.8 L307.8,20.2 L312.7,20.8 L318.4,23.2 L320.0,26.1 L323.2,25.8 L326.2,32.2 L327.7,29.6 L333.2,28.3 L334.2,31.0 L340.7,32.9 L340.7,35.4 L344.0,37.4 L350.6,36.3 L354.6,33.5 L360.0,31.8 L361.9,36.0 L365.6,35.1 L370.1,36.0 L375.3,35.4 L381.2,39.0 L386.9,38.4 L386.4,39.9 L379.0,43.5 L368.8,46.3 L362.2,49.3 L352.6,56.7 L348.5,61.2 L342.3,66.4 L332.4,73.3Z"/>
+<path class="st" data-state="Wisconsin" d="M369.3,79.6 L373.4,81.3 L375.8,86.1 L398.4,91.9 L407.8,96.2 L410.7,95.2 L420.1,98.0 L422.6,101.6 L427.2,105.1 L427.0,110.1 L424.9,114.0 L430.1,114.6 L428.1,118.7 L431.4,121.7 L430.6,125.1 L426.4,125.8 L422.8,132.3 L421.4,136.9 L424.0,137.7 L427.3,134.7 L431.0,129.0 L435.5,126.9 L439.1,119.7 L443.7,118.1 L443.4,121.8 L440.2,125.3 L434.1,137.2 L432.4,143.8 L432.5,148.5 L430.2,150.0 L428.2,156.5 L428.9,161.9 L427.0,165.5 L424.3,174.5 L424.9,181.5 L427.6,187.8 L426.7,196.1 L405.0,196.1 L364.3,195.6 L362.8,192.0 L354.9,188.7 L353.2,184.2 L352.5,177.8 L355.2,174.3 L351.9,171.5 L351.7,167.3 L350.5,164.0 L351.1,159.4 L346.8,153.2 L343.4,152.1 L337.1,147.2 L336.0,143.5 L329.3,140.3 L327.0,137.2 L322.4,136.7 L316.6,131.6 L318.2,121.1 L317.7,116.2 L320.2,111.8 L317.4,108.2 L314.9,107.9 L315.3,103.8 L320.3,97.7 L326.6,95.4 L327.9,93.6 L327.9,76.7 L332.4,74.4 L334.1,75.6 L339.0,75.9 L354.3,71.1 L360.0,68.4 L361.9,70.5 L358.9,74.2 L366.1,79.1Z"/>
+<path class="st" data-state="Iowa" d="M348.3,167.3 L351.7,167.3 L351.9,171.5 L355.2,174.3 L352.5,177.8 L353.2,184.2 L354.9,188.7 L362.8,192.0 L364.3,195.6 L369.1,200.8 L369.7,203.8 L374.7,206.6 L375.3,210.2 L374.4,215.7 L371.5,217.6 L370.8,221.9 L364.0,225.5 L355.4,227.0 L354.0,232.0 L357.6,236.0 L357.2,241.0 L354.3,243.9 L353.7,248.3 L347.6,251.4 L347.2,256.6 L344.8,255.6 L340.3,249.8 L276.5,251.1 L251.5,250.6 L249.0,246.8 L250.2,239.5 L248.0,233.1 L248.2,225.9 L244.3,223.3 L243.7,219.4 L245.0,216.0 L243.6,211.0 L240.6,209.1 L236.6,196.2 L232.5,190.0 L234.4,185.8 L235.2,180.1 L236.8,178.1 L234.1,175.3 L234.8,170.2 L233.6,167.9 L236.5,167.3Z"/>
+<path class="st" data-state="Illinois" d="M364.3,195.6 L426.7,196.1 L426.0,201.6 L429.4,208.0 L432.9,218.5 L432.8,286.0 L430.4,291.2 L433.1,297.3 L433.5,302.3 L430.7,306.4 L430.0,310.1 L426.0,316.2 L423.5,316.7 L424.1,320.3 L422.4,321.7 L421.1,328.5 L421.8,330.3 L418.9,334.4 L421.0,339.4 L411.9,342.1 L411.1,345.1 L413.1,348.8 L410.3,351.2 L402.3,346.8 L399.7,347.1 L396.4,352.1 L397.5,353.7 L394.0,353.4 L389.0,345.2 L390.8,343.3 L389.0,337.9 L389.0,333.5 L381.9,327.4 L379.5,328.0 L377.1,324.2 L370.6,318.4 L370.7,313.9 L374.4,306.5 L373.8,303.9 L376.0,300.4 L372.9,298.4 L368.1,297.1 L365.5,299.8 L363.8,298.1 L362.4,288.7 L355.0,282.6 L348.3,275.2 L345.5,266.4 L345.3,260.6 L347.2,256.6 L347.6,251.4 L353.7,248.3 L354.3,243.9 L357.2,241.0 L357.6,236.0 L354.0,232.0 L355.4,227.0 L364.0,225.5 L370.8,221.9 L371.5,217.6 L374.4,215.7 L375.3,210.2 L374.7,206.6 L369.7,203.8 L369.1,200.8Z"/>
+        </svg>
+      </div>
+      <div class="choices hidden" id="choices"></div>
+      <div class="spellrow hidden" id="spellrow">
+        <input id="spell" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" aria-label="Type the capital city">
+        <button class="btn" id="check">Check</button>
+      </div>
+      <div class="letters" id="letters"></div>
+      <p class="feedback" id="feedback" aria-live="polite"></p>
+      <div class="next-row"><button class="btn ghost hidden" id="next">Next question</button></div>
+    </div>
+
+    <div id="summary" class="summary hidden">
+      <h2 id="sum-title">Trail complete!</h2>
+      <div class="big" id="sum-score"></div>
+      <p id="sum-note" style="font-weight:700;margin-top:6px"></p>
+      <div class="missed hidden" id="sum-missed"></div>
+      <div class="next-row"><button class="btn" id="again">Hike it again</button></div>
+    </div>
+  </div>
+  <footer>Round of 13 &bull; anything missed comes back at the end until it&rsquo;s right</footer>
+</div>
+
+<script>
+const DATA = [
+  ["Texas","Austin"],["Oklahoma","Oklahoma City"],["Arkansas","Little Rock"],["Louisiana","Baton Rouge"],["Missouri","Jefferson City"],["Kansas","Topeka"],["Nebraska","Lincoln"],["South Dakota","Pierre"],["North Dakota","Bismarck"],["Minnesota","St. Paul"],["Wisconsin","Madison"],["Iowa","Des Moines"],["Illinois","Springfield"]
+];
+const $ = id => document.getElementById(id);
+const stateEls = {};
+document.querySelectorAll(".st").forEach(el => stateEls[el.dataset.state] = el);
+
+let mode = "find", queue = [], missed = [], score = 0, asked = 0, total = 13,
+    current = null, attempts = 0, locked = false;
+
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function clearMap(){ Object.values(stateEls).forEach(e => e.classList.remove("hl","dim","flash-ok","flash-no")); }
+
+function startRound(){
+  queue = shuffle(DATA); missed = []; score = 0; asked = 0; total = DATA.length;
+  $("summary").classList.add("hidden"); $("quiz-area").classList.remove("hidden");
+  $("qtot").textContent = total; $("score").textContent = 0;
+  nextQuestion();
+}
+
+function nextQuestion(){
+  if(queue.length === 0){
+    if(missed.length){ queue = shuffle(missed); missed = []; total += queue.length; $("qtot").textContent = total; }
+    else return showSummary();
+  }
+  current = queue.shift(); asked++; attempts = 0; locked = false;
+  $("qnum").textContent = asked;
+  $("feedback").textContent = ""; $("feedback").className = "feedback";
+  $("next").classList.add("hidden"); $("letters").innerHTML = "";
+  clearMap();
+  $("card").classList.toggle("mode-find", mode === "find");
+  $("choices").classList.add("hidden"); $("spellrow").classList.add("hidden");
+
+  const [state, capital] = current;
+  if(mode === "find"){
+    $("prompt").innerHTML = 'Tap <span class="word">' + state + '</span> on the map';
+  } else if(mode === "capital"){
+    stateEls[state].classList.add("hl");
+    $("prompt").innerHTML = 'What is the capital of <span class="word">' + state + '</span>?';
+    buildChoices(capital, DATA.map(d => d[1]));
+  } else {
+    stateEls[state].classList.add("hl");
+    $("prompt").innerHTML = 'Spell the capital of <span class="word">' + state + '</span>';
+    $("spellrow").classList.remove("hidden");
+    $("spell").value = ""; $("spell").disabled = false; $("check").disabled = false;
+    setTimeout(() => $("spell").focus(), 50);
+  }
+}
+
+function buildChoices(answer, pool){
+  const wrong = shuffle(pool.filter(c => c !== answer)).slice(0,3);
+  const opts = shuffle([answer, ...wrong]);
+  const box = $("choices"); box.innerHTML = ""; box.classList.remove("hidden");
+  opts.forEach(text => {
+    const b = document.createElement("button");
+    b.className = "choice"; b.textContent = text;
+    b.onclick = () => pickChoice(b, text === answer, answer);
+    box.appendChild(b);
+  });
+}
+
+function pickChoice(btn, correct, answer){
+  if(locked) return; locked = true;
+  document.querySelectorAll(".choice").forEach(b => {
+    b.disabled = true;
+    if(b.textContent === answer) b.classList.add("ok");
+  });
+  if(correct){ score++; $("score").textContent = score; say("Nice! " + praise(), true); }
+  else { btn.classList.add("no"); missed.push(current); say("It's " + answer + " — this one will come back around.", false); }
+  $("next").classList.remove("hidden"); $("next").focus();
+}
+
+function mapTap(name){
+  if(mode !== "find" || locked) return; locked = true;
+  const target = current[0];
+  if(name === target){
+    stateEls[target].classList.add("flash-ok");
+    score++; $("score").textContent = score; say("Found it! " + praise(), true);
+  } else {
+    stateEls[name].classList.add("flash-no");
+    stateEls[target].classList.add("flash-ok");
+    missed.push(current);
+    say("That was " + name + ". " + target + " is the green one — it'll come back around.", false);
+  }
+  $("next").classList.remove("hidden"); $("next").focus();
+}
+
+const norm = s => s.toLowerCase().replace(/\./g,"").replace(/\bsaint\b/g,"st").replace(/\s+/g," ").trim();
+function checkSpelling(){
+  if(locked) return;
+  const guess = $("spell").value; if(!norm(guess)) return;
+  const answer = current[1];
+  if(norm(guess) === norm(answer)){
+    locked = true; score++; $("score").textContent = score;
+    renderLetters(answer, answer);
+    say("Perfect spelling! " + praise(), true);
+    finishSpell();
+  } else {
+    attempts++;
+    renderLetters(guess, answer);
+    if(attempts >= 2){
+      locked = true; missed.push(current);
+      say("It's spelled " + answer + " — it'll come back around.", false);
+      renderLetters(answer, answer);
+      finishSpell();
+    } else {
+      say("Green letters are in the right spot. One more try!", false);
+      $("spell").select();
+    }
+  }
+}
+function finishSpell(){
+  $("spell").disabled = true; $("check").disabled = true;
+  $("next").classList.remove("hidden"); $("next").focus();
+}
+function renderLetters(guess, answer){
+  const box = $("letters"); box.innerHTML = "";
+  const g = guess, a = answer;
+  const len = Math.max(g.length, a.length);
+  for(let i = 0; i < len; i++){
+    const gc = g[i] || "", ac = a[i] || "";
+    const d = document.createElement("div");
+    if(ac === " " && gc === " "){ d.className = "lt sp"; box.appendChild(d); continue; }
+    d.className = "lt " + (gc.toLowerCase() === ac.toLowerCase() && gc !== "" ? "ok" : "no");
+    d.textContent = gc || "_";
+    box.appendChild(d);
+  }
+}
+
+const PRAISE = ["You're on the trail!","Summit ahead!","Map master!","Keep hiking!","Golden!","Trailblazer!"];
+function praise(){ return PRAISE[Math.floor(Math.random()*PRAISE.length)]; }
+function say(msg, good){
+  const f = $("feedback"); f.textContent = msg;
+  f.className = "feedback " + (good ? "good" : "bad");
+}
+
+function showSummary(){
+  $("quiz-area").classList.add("hidden");
+  $("summary").classList.remove("hidden");
+  $("sum-score").textContent = score + " / " + total;
+  const perfect = score === total;
+  $("sum-title").textContent = perfect ? "Perfect hike!" : "Trail complete!";
+  $("sum-note").textContent = perfect
+    ? "Every state, first try. Ready for the real test."
+    : "You got everything right by the end — a few needed extra tries.";
+  $("sum-missed").classList.add("hidden");
+}
+
+document.querySelectorAll(".tab").forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected","false"));
+    t.setAttribute("aria-selected","true");
+    mode = t.dataset.mode;
+    startRound();
+  };
+});
+Object.entries(stateEls).forEach(([name, el]) => {
+  el.addEventListener("click", () => mapTap(name));
+});
+$("next").onclick = nextQuestion;
+$("again").onclick = startRound;
+$("check").onclick = checkSpelling;
+$("spell").addEventListener("keydown", e => { if(e.key === "Enter") checkSpelling(); });
+
+startRound();
+</script>
+</body>
+</html>
