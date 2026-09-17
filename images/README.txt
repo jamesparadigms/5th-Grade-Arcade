@@ -1,4 +1,4 @@
-IVY'S ARCADE — MOSAIC PICTURES
+5TH GRADE ARCADE — MOSAIC PICTURES
 ================================
 Drop 5 square images (1024x1024 or larger) into this folder with EXACTLY
 these filenames (.jpg preferred, .png also works). The game finds them
