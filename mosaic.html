@@ -20,8 +20,9 @@ html,body{height:100%;overflow:hidden;background:var(--paper);color:var(--ink);
   padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 
 /* top bar */
-#bar{height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+#bar{height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 14px 0 98px}
 #barTitle{font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.05rem;letter-spacing:.01em}
+#home{position:fixed;top:10px;left:10px;z-index:50;font-size:.8rem;font-weight:800;color:var(--ink);text-decoration:none;background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:6px 11px}
 #bar .grp{display:flex;align-items:center;gap:12px;font-weight:800}
 .gemchip{background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.95rem}
 .gemchip b{color:var(--teal)}
@@ -32,11 +33,12 @@ html,body{height:100%;overflow:hidden;background:var(--paper);color:var(--ink);
 #frame{position:relative;background:linear-gradient(135deg,#C89A55,#A9793B 55%,#8C6330);padding:10px;border-radius:10px;
   box-shadow:0 10px 24px rgba(51,48,90,.22), inset 0 0 0 3px rgba(255,255,255,.25)}
 #canvasWrap{position:relative;background:#FFF;border-radius:4px;overflow:hidden}
-#pix{display:block;image-rendering:pixelated}
-#tiles{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr)}
+#ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:5rem}
+#photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+#tiles{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr)}
 .tile{position:relative;border:1px solid rgba(255,255,255,.35);background:linear-gradient(145deg,var(--cover2),var(--cover));
   display:flex;align-items:center;justify-content:center;cursor:pointer;
-  font-family:'Fredoka',sans-serif;font-weight:600;font-size:1rem;color:#fff;transition:opacity .45s,transform .45s}
+  font-family:'Fredoka',sans-serif;font-weight:600;font-size:.9rem;color:#fff;transition:opacity .45s,transform .45s}
 .tile:active{filter:brightness(1.12)}
 .tile.sel{outline:3px solid var(--gold);outline-offset:-3px;filter:brightness(1.15)}
 .tile.done{opacity:0;transform:scale(1.15);pointer-events:none}
@@ -98,17 +100,24 @@ h1 em{font-style:normal;color:var(--violet)}
 .big:active{box-shadow:0 1px 0 var(--violet-dk);transform:translateY(4px)}
 .big.alt{background:transparent;color:var(--ink);border:2px solid var(--line);box-shadow:none;margin-top:10px;font-size:1rem}
 .err{color:var(--warm);font-weight:800;font-size:.85rem;min-height:1.2em;margin-top:8px}
-#doneArt{margin:14px auto 4px;image-rendering:pixelated;border-radius:6px;border:6px solid #A9793B;box-shadow:0 8px 20px rgba(51,48,90,.25)}
+#doneWrap{position:relative;width:190px;height:190px;margin:14px auto 4px;border-radius:8px;overflow:hidden;border:6px solid #A9793B;box-shadow:0 8px 20px rgba(51,48,90,.25)}
+#doneArt{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+#donePh{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:4.5rem}
+.zoom{animation:zoomin 6s ease-out forwards}
+@keyframes zoomin{from{transform:scale(1.18)}to{transform:scale(1)}}
+.thumb{width:46px;height:46px;border-radius:8px;overflow:hidden;border:3px solid #C89A55;display:flex;align-items:center;justify-content:center;font-size:1.3rem}
+.thumb img{width:100%;height:100%;object-fit:cover}
 #doneName{font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.4rem;margin-top:10px}
 #doneGems{font-weight:800;color:var(--teal);margin-top:4px}
 #doneNote{font-weight:700;color:var(--ink-soft);font-size:.88rem;margin-top:8px;line-height:1.5}
 #gallery{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
-#gallery canvas{image-rendering:pixelated;border-radius:4px;border:3px solid #C89A55}
+
 @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
 @media (max-height:720px){#pad{grid-template-rows:repeat(4,40px)}#eq{font-size:1.45rem}}
 </style>
 </head>
 <body>
+<a id="home" href="index.html" aria-label="Back to arcade">◀︎ Arcade</a>
 <div id="app">
   <div id="bar">
     <span id="barTitle">Mosaic 🎨</span>
@@ -122,7 +131,8 @@ h1 em{font-style:normal;color:var(--violet)}
   <div id="stage">
     <div id="frame">
       <div id="canvasWrap">
-        <canvas id="pix" width="12" height="12"></canvas>
+        <div id="ph"><span id="phEmoji"></span></div>
+        <img id="photo" alt="" draggable="false">
         <div id="tiles"></div>
         <div id="hintCard" class="hidden">
           <div class="hm" id="hintMsg"></div>
@@ -170,7 +180,7 @@ h1 em{font-style:normal;color:var(--violet)}
 <div class="ov hidden" id="done">
   <div class="box">
     <div class="sec" style="margin-top:0">Picture restored!</div>
-    <canvas id="doneArt" width="12" height="12"></canvas>
+    <div id="doneWrap"><div id="donePh"><span></span></div><img id="doneArt" alt="" draggable="false"></div>
     <div id="doneName"></div>
     <div id="doneGems"></div>
     <p id="doneNote"></p>
@@ -184,30 +194,38 @@ h1 em{font-style:normal;color:var(--violet)}
 (() => {
 const $ = id => document.getElementById(id);
 
-/* ---------- original pixel art (12x12) ---------- */
-const PAL = {r:"#E5484D",R:"#B22B32",w:"#FFFFFF",o:"#F59E2C",y:"#F7CE46",g:"#9AA0B5",G:"#6B7280",
-             b:"#A9713F",B:"#7C4F26",k:"#33305A",p:"#F7A8C4",m:"#C566E0",P:"#8B5CF6",
-             t:"#E0B36A",c:"#54B8E8",n:"#1FA97C",".":null};
-const ARTS = [
- {name:"The Rocket", sky:"#DCEBF7", rows:[
-  ".....rr.....","....rrrr....","....rwwr....","....rwwr....","....rrrr....","....RrrR....",
-  "...gRrrRg...","..ggRrrRgg..","..g.RrrR.g..","....oyyo....",".....oo.....",".....y......"]},
- {name:"The Puppy", sky:"#F2E8D9", rows:[
-  ".BB......BB.",".BbB....BbB.","..bbbbbbbb..",".bbbbbbbbbb.",".bkbbbbbbkb.",".bbbbbbbbbb.",
-  ".bbbwwwwbbb.","..bwwkkwwb..","..bwwwwwwb..","...bwppwb...","....bbbb....","............"]},
- {name:"The Butterfly", sky:"#EAF3E4", rows:[
-  "............",".mm..kk..mm.","mmmm.kk.mmmm","mypm.kk.mpym","mmmm.kk.mmmm",".mmm.kk.mmm.",
-  ".PPP.kk.PPP.","PPPP.kk.PPPP","PyP..kk..PyP","PPP..kk..PPP",".P...kk...P.","............"]},
- {name:"The Ice Cream", sky:"#FBEFF4", rows:[
-  "....pppp....","...pppppp...","..pmpppmpp..","..pppcpppp..","..pmppppmp..","...tttttt...",
-  "...tBttBt...","....tttt....","....tBtt....",".....tt.....",".....tB.....","......t....."]},
- {name:"The Gold Star", sky:"#EFE9F8", rows:[
-  ".....yy.....",".....yy.....","....yyyy....","yyyyyyyyyyyy",".yyyyyyyyyy.","..yyyyyyyy..",
-  "...yyyyyy...","...yoooyy...","..yyy..yyy..","..yy....yy..",".y........y.","............"]},
- {name:"The Heart", sky:"#E7F2EF", rows:[
-  "............","..rr....rr..",".rrrr..rrrr.","rrrrrrrrrrrr","rwrrrrrrrrrr","rrrrrrrrrrrr",
-  ".rrrrrrrrrr.","..rrrrrrrr..","...rrrrrr...","....rrrr....",".....rr.....","............"]},
+/* ---------- picture manifest: real images with built-in placeholders ---------- */
+const PICS = [
+ {slug:"ufo-teacher",       title:"Pop Quiz, Interrupted",          emoji:"\u{1F6F8}", grad:["#2E2955","#6C5CE7"]},
+ {slug:"axolotl-cat",       title:"The Food Chain Has Questions",   emoji:"\u{1F98E}", grad:["#F7A8C4","#8B2D5E"]},
+ {slug:"cool-teacher",      title:"The Substitute Arrives",         emoji:"\u{1F576}", grad:["#2A3550","#17B9A4"]},
+ {slug:"trex-whiteboard",   title:"Tiny Arms, Big Dreams",          emoji:"\u{1F996}", grad:["#31284A","#5DBB63"]},
+ {slug:"dog-driving",       title:"Who Gave the Dog Keys?",         emoji:"\u{1F415}", grad:["#26324A","#C89A55"]},
 ];
+function loadPic(pic, done){
+  const img = new Image();
+  let triedPng = false;
+  img.onload = () => done(img.src);
+  img.onerror = () => {
+    if(!triedPng){ triedPng = true; img.src = "images/"+pic.slug+".png"; }
+    else done(null);
+  };
+  img.src = "images/"+pic.slug+".jpg";
+}
+function showPic(el, phEl, src, pic){
+  if(src){ el.src = src; el.style.display = "block"; phEl.style.display = "none"; }
+  else {
+    el.style.display = "none"; phEl.style.display = "flex";
+    phEl.style.background = "linear-gradient(140deg,"+pic.grad[0]+","+pic.grad[1]+")";
+    phEl.querySelector("span").textContent = pic.emoji;
+  }
+}
+function sizeCanvas(){
+  const stage = document.getElementById("stage");
+  const s = Math.min(stage.clientWidth-60, stage.clientHeight-40, 380);
+  const wrap = document.getElementById("canvasWrap");
+  wrap.style.width = Math.max(220, s)+"px"; wrap.style.height = Math.max(220, s)+"px";
+}
 
 /* ---------- audio ---------- */
 let actx = null, muted = false;
@@ -277,28 +295,11 @@ function pickFacts(n){
 }
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
-/* ---------- picture rendering ---------- */
-function drawArt(cv, art){
-  const x = cv.getContext("2d");
-  for(let r=0;r<12;r++) for(let c=0;c<12;c++){
-    const ch = art.rows[r][c];
-    x.fillStyle = PAL[ch] || art.sky;
-    x.fillRect(c,r,1,1);
-  }
-}
-function sizeCanvas(){
-  const stage = $("stage");
-  const s = Math.min(stage.clientWidth-60, stage.clientHeight-40, 360);
-  const px = Math.max(180, Math.floor(s/12)*12);
-  const cv = $("pix");
-  cv.style.width = px+"px"; cv.style.height = px+"px";
-}
-
 /* ---------- round lifecycle ---------- */
 function startRound(){
-  const art = ARTS[artIdx % ARTS.length];
-  round = { art, facts: pickFacts(12), solved:0, gems:0, hinted:[] };
-  drawArt($("pix"), art);
+  const pic = PICS[artIdx % PICS.length];
+  round = { pic, src:null, facts: pickFacts(16), solved:0, gems:0, hinted:[] };
+  loadPic(pic, src => { round.src = src; showPic($("photo"), $("ph"), src, pic); });
   sizeCanvas();
   const T = $("tiles"); T.innerHTML = "";
   round.facts.forEach((f,i)=>{
@@ -413,28 +414,30 @@ function solve(f){
   $("fb").className = "good";
   $("hintCard").classList.add("hidden");
   $("ask").style.display = "none"; $("idleMsg").style.display = "flex";
-  $("idleMsg").textContent = round.solved < 12 ? "Pick your next tile 🖌️" : "";
+  $("idleMsg").textContent = round.solved < 16 ? "Pick your next tile 🖌️" : "";
   sel = null; typed = ""; paintTyped(); paintBar();
-  if(round.solved === 12) setTimeout(finishRound, 700);
+  if(round.solved === 16) setTimeout(finishRound, 700);
 }
 
 function finishRound(){
   pics++; artIdx++;
-  galleryArts.push(round.art);
+  galleryArts.push({pic: round.pic, src: round.src});
   sfx.finish();
-  const big = $("doneArt");
-  big.style.width = "168px"; big.style.height = "168px";
-  drawArt(big, round.art);
-  $("doneName").textContent = round.art.name;
+  const big = $("doneArt"), bph = $("donePh");
+  big.classList.remove("zoom"); void big.offsetWidth;
+  showPic(big, bph, round.src, round.pic);
+  (round.src ? big : bph).classList.add("zoom");
+  $("doneName").textContent = round.pic.title;
   $("doneGems").textContent = "💎 +" + round.gems + " gems this picture";
   $("doneNote").textContent = round.hinted.length
     ? "The tricky ones will come back in a later picture with a ★ bonus — beat them first try for extra gems."
     : "Every tile on the first try. The studio is impressed.";
   const G = $("gallery"); G.innerHTML = "";
-  galleryArts.slice(-6).forEach(a=>{
-    const c = document.createElement("canvas"); c.width = 12; c.height = 12;
-    c.style.width = "44px"; c.style.height = "44px";
-    drawArt(c, a); G.appendChild(c);
+  galleryArts.slice(-6).forEach(e=>{
+    const d = document.createElement("div"); d.className = "thumb";
+    if(e.src){ const im = document.createElement("img"); im.src = e.src; d.appendChild(im); }
+    else { d.style.background = "linear-gradient(140deg,"+e.pic.grad[0]+","+e.pic.grad[1]+")"; d.textContent = e.pic.emoji; }
+    G.appendChild(d);
   });
   paintBar();
   $("done").classList.remove("hidden");

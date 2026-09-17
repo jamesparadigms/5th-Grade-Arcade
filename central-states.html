@@ -32,6 +32,7 @@ h1{font-family:'Baloo 2',cursive;font-size:clamp(1.15rem,3.6vw,1.45rem);line-hei
 }
 .tab:hover{transform:translateY(-1px)}
 .tab[aria-selected="true"]{background:var(--pine);border-color:var(--pine);color:#fff}
+#home{position:fixed;top:8px;left:10px;z-index:15;font-weight:800;font-size:.78rem;color:var(--pine-soft);text-decoration:none;background:var(--card);border:2px solid var(--line);border-radius:999px;padding:5px 11px}
 .tab:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--poppy);outline-offset:2px}
 .card{
   background:var(--card);border-radius:var(--radius);
@@ -98,6 +99,7 @@ footer{display:none}
 </style>
 </head>
 <body>
+<a id="home" href="index.html" aria-label="Back to arcade">◀ Arcade</a>
 <div class="wrap">
   <header>
     <div class="kicker">Trail Quiz &bull; 13 States</div>
