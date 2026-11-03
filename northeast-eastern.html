@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Northeast and Eastern Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pine:#1E3A2F; --pine-soft:#40594C; --paper:#EFF5F1; --card:#FFFFFF;
+  --poppy:#E8743B; --poppy-deep:#C85A24; --sky:#BFD9CD;
+  --ok:#2F8F5B; --ok-bg:#E3F2E9; --no:#C8503C; --no-bg:#F9E8E4;
+  --line:#D5E2DA; --radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',system-ui,sans-serif;color:var(--pine);
+  background:var(--paper);
+  background-image:radial-gradient(circle at 85% 8%, #FBE9DC 0%, transparent 34%),
+                   radial-gradient(circle at 8% 95%, #E2EFE8 0%, transparent 40%);
+  min-height:100vh;min-height:100dvh;padding:6px 10px 12px;
+}
+.wrap{max-width:680px;margin:0 auto}
+header{text-align:center;margin-bottom:2px;padding:0 64px}
+.kicker{display:none}
+h1{font-family:'Baloo 2',cursive;font-size:clamp(1.15rem,3.6vw,1.45rem);line-height:1.05;letter-spacing:-.01em}
+.tabs{display:flex;gap:7px;justify-content:center;margin:6px 0 6px;flex-wrap:wrap}
+.tab{
+  font:inherit;font-weight:800;font-size:.92rem;color:var(--pine-soft);
+  background:var(--card);border:2px solid var(--line);border-radius:999px;
+  padding:7px 16px;cursor:pointer;transition:transform .12s,background .12s,color .12s;
+}
+.tab:hover{transform:translateY(-1px)}
+.tab[aria-selected="true"]{background:var(--pine);border-color:var(--pine);color:#fff}
+#home{position:fixed;top:8px;left:10px;z-index:15;font-weight:800;font-size:.78rem;color:var(--pine-soft);text-decoration:none;background:var(--card);border:2px solid var(--line);border-radius:999px;padding:5px 11px}
+.tab:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--poppy);outline-offset:2px}
+.card{
+  background:var(--card);border-radius:var(--radius);
+  box-shadow:0 8px 26px rgba(30,58,47,.10),0 1px 0 rgba(30,58,47,.05);
+  padding:8px 12px 10px;
+}
+.scorebar{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-weight:800;font-size:.8rem}
+.chip{background:var(--paper);border-radius:999px;padding:5px 13px}
+.chip .n{color:var(--poppy-deep)}
+.prompt{font-family:'Baloo 2',cursive;font-size:clamp(1.05rem,3.5vw,1.3rem);text-align:center;margin:2px 0 6px;min-height:1.3em}
+.prompt .word{color:var(--poppy-deep)}
+.mapbox{display:flex;justify-content:center}
+svg#map{height:min(300px,34dvh);width:auto;max-width:92vw}
+.st{fill:#E7F0EA;stroke:var(--pine);stroke-width:2.5;transition:fill .15s}
+.st.hl{fill:var(--poppy)}
+.st.dim{opacity:.45}
+.mode-find .st,.mode-find .assist{cursor:pointer}
+.assist{fill:none;stroke:transparent;stroke-width:12;pointer-events:stroke}
+body{touch-action:manipulation}
+.mode-find .st:hover{fill:var(--sky)}
+.st.flash-ok{fill:var(--ok)}
+.st.flash-no{fill:var(--no)}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.choice{
+  font:inherit;font-weight:800;font-size:1rem;color:var(--pine);
+  background:var(--paper);border:2px solid var(--line);border-radius:14px;
+  padding:10px 8px;cursor:pointer;transition:transform .1s,background .12s;
+}
+.choice:hover{transform:translateY(-1px);background:var(--sky)}
+@media (max-height:740px){svg#map{height:min(240px,30dvh)}.choice{padding:8px 8px;font-size:.92rem}h1{font-size:1.1rem}}
+.choice.ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.choice.no{background:var(--no-bg);border-color:var(--no);color:var(--no)}
+.choice:disabled{cursor:default}
+.spellrow{display:flex;gap:10px;margin-top:8px}
+input#spell{
+  flex:1;font:inherit;font-weight:700;font-size:1.15rem;color:var(--pine);
+  border:2px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--paper);
+}
+.btn{
+  font:inherit;font-weight:800;color:#fff;background:var(--poppy);border:none;
+  border-radius:14px;padding:12px 22px;cursor:pointer;transition:transform .1s,background .12s;
+}
+.btn:hover{background:var(--poppy-deep);transform:translateY(-1px)}
+.btn.ghost{background:var(--pine)}
+.letters{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:6px;min-height:0}
+.lt{
+  font-family:'Baloo 2',cursive;font-weight:700;font-size:1.15rem;width:30px;height:34px;
+  display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--paper);
+}
+.lt.ok{background:var(--ok-bg);color:var(--ok)}
+.lt.no{background:var(--no-bg);color:var(--no)}
+.lt.sp{background:transparent;width:12px}
+.feedback{text-align:center;font-weight:800;margin-top:6px;min-height:1.2em;font-size:.92rem}
+.feedback.good{color:var(--ok)} .feedback.bad{color:var(--no)}
+.next-row{display:flex;justify-content:center;margin-top:8px}
+.hidden{display:none !important}
+.summary{text-align:center}
+.summary h2{font-family:'Baloo 2',cursive;font-size:1.7rem;margin-bottom:6px}
+.summary .big{font-family:'Baloo 2',cursive;font-size:3rem;color:var(--poppy-deep);line-height:1}
+.missed{margin:14px auto 4px;max-width:400px;text-align:left;background:var(--paper);border-radius:14px;padding:12px 16px;font-weight:600}
+.missed b{color:var(--poppy-deep)}
+footer{display:none}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+@media (max-width:430px){.choices{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<a id="home" href="index.html" aria-label="Back to arcade">◀ Arcade</a>
+<div class="wrap">
+  <header>
+    <div class="kicker">Trail Quiz &bull; 13 States</div>
+    <h1>Northeast &amp; Eastern</h1>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Quiz mode">
+    <button class="tab" role="tab" aria-selected="true" data-mode="find">1 &bull; Find it</button>
+    <button class="tab" role="tab" aria-selected="false" data-mode="capital">2 &bull; Capitals</button>
+    <button class="tab" role="tab" aria-selected="false" data-mode="spell">3 &bull; Spelling</button>
+  </div>
+
+  <div class="card" id="card">
+    <div class="scorebar">
+      <span class="chip">Question <span class="n" id="qnum">1</span> / <span id="qtot">13</span></span>
+      <span class="chip">Score <span class="n" id="score">0</span></span>
+    </div>
+
+    <div id="quiz-area">
+      <p class="prompt" id="prompt"></p>
+      <div class="mapbox" id="mapbox">
+        <svg id="map" viewBox="0 -14 392 252" role="img" aria-label="Map of the western United States">
+<path class="st" data-state="Maine" d="M323.1,96.6 L321.2,95.1 L321.5,93.0 L318.9,90.6 L317.1,49.9 L324.0,47.0 L322.9,45.5 L325.5,42.3 L328.2,40.9 L327.7,39.6 L330.2,37.7 L329.4,34.0 L331.0,28.5 L333.5,26.7 L334.4,20.9 L346.8,5.0 L349.7,5.7 L349.9,9.5 L352.0,10.9 L357.1,8.6 L360.4,8.6 L362.7,7.1 L367.1,10.4 L369.8,13.2 L369.9,36.5 L369.6,42.1 L375.1,43.6 L374.3,46.0 L375.7,48.3 L374.6,50.3 L376.9,53.5 L379.8,52.8 L382.7,60.2 L379.4,63.5 L377.5,62.3 L375.9,64.5 L373.6,64.0 L373.3,65.9 L370.4,65.7 L365.6,70.1 L364.5,67.1 L362.8,66.8 L363.6,70.1 L359.9,71.7 L359.1,69.1 L357.3,70.5 L353.2,70.5 L353.1,67.4 L350.7,68.1 L351.1,70.2 L348.8,74.8 L349.3,76.1 L346.3,78.6 L343.3,77.6 L341.5,80.3 L339.1,80.6 L337.1,82.8 L334.6,82.3 L333.9,80.0 L330.3,83.7 L331.3,86.0 L328.7,86.8 L328.5,88.7 L325.5,91.1Z"/>
+<path class="st" data-state="New Hampshire" d="M317.1,49.9 L318.9,90.6 L321.5,93.0 L321.2,95.1 L323.1,96.6 L321.3,100.4 L319.7,100.1 L315.4,102.1 L313.7,104.1 L295.1,103.4 L293.7,101.8 L293.9,98.7 L295.3,97.6 L295.1,94.6 L296.3,85.9 L299.1,81.7 L300.5,77.1 L301.9,75.4 L301.8,70.2 L307.2,68.3 L309.8,64.8 L308.3,61.4 L310.5,57.9 L310.3,55.9 L312.6,50.5 L316.3,51.1Z"/>
+<path class="st" data-state="Vermont" d="M310.3,55.9 L310.5,57.9 L308.3,61.4 L309.8,64.8 L307.2,68.3 L301.8,70.2 L301.9,75.4 L300.5,77.1 L299.1,81.7 L296.3,85.9 L295.1,94.6 L295.3,97.6 L293.9,98.7 L293.7,101.8 L295.1,103.4 L282.1,103.1 L282.5,86.9 L279.9,83.5 L280.8,81.7 L279.4,76.1 L281.2,71.8 L281.7,67.9 L280.2,64.1 L281.1,60.2 L280.9,55.9Z"/>
+<path class="st" data-state="Massachusetts" d="M319.7,100.1 L321.3,100.4 L321.9,104.1 L321.2,107.0 L318.7,109.8 L318.6,113.0 L322.1,113.4 L324.2,116.7 L323.8,119.3 L325.6,120.0 L325.8,122.4 L330.2,124.5 L335.4,122.5 L334.3,125.4 L326.6,127.9 L323.8,128.0 L322.2,126.1 L319.5,126.6 L319.5,128.1 L316.5,129.0 L315.3,125.3 L313.1,123.1 L312.3,118.2 L305.6,118.4 L305.6,118.1 L278.6,117.5 L278.3,116.7 L282.1,103.1 L313.7,104.1 L315.4,102.1Z"/>
+<path class="st" data-state="Connecticut" d="M285.5,117.7 L305.6,118.1 L305.6,130.7 L304.6,132.7 L303.2,132.3 L296.2,133.9 L287.9,133.5 L284.3,136.3 L280.5,137.2 L275.9,139.6 L274.8,137.2 L278.7,134.9 L277.6,133.2 L278.6,117.5Z"/>
+<path class="st" data-state="Rhode Island" d="M309.9,118.2 L312.3,118.2 L313.1,123.1 L314.8,124.6 L312.9,124.2 L311.2,127.3 L310.7,131.6 L304.6,132.7 L305.6,130.7 L305.6,118.4Z"/>
+<path class="st" data-state="New York" d="M280.9,55.9 L281.1,60.2 L280.2,64.1 L281.7,67.9 L281.2,71.8 L279.4,76.1 L280.8,81.7 L279.9,83.5 L282.5,86.9 L282.1,103.1 L278.3,116.7 L278.6,117.5 L277.6,133.2 L278.7,134.9 L274.8,137.2 L275.9,139.6 L282.7,141.3 L284.1,140.1 L290.0,140.1 L293.0,139.4 L297.9,136.1 L298.3,138.5 L300.8,139.5 L294.9,142.6 L282.6,147.1 L277.4,148.1 L274.0,147.8 L271.4,148.8 L270.0,145.4 L272.0,139.4 L259.3,131.9 L258.6,130.4 L256.1,130.3 L253.2,126.7 L253.6,123.7 L251.6,121.3 L250.4,121.4 L248.7,118.5 L178.2,118.5 L178.2,113.0 L188.0,107.0 L189.6,104.2 L192.7,102.3 L191.5,98.7 L190.2,98.0 L189.2,92.3 L198.6,90.0 L206.9,90.1 L210.3,90.6 L213.9,92.9 L216.1,92.0 L223.1,92.1 L227.3,90.6 L231.7,86.9 L234.6,86.8 L234.7,81.1 L236.2,77.8 L232.6,75.5 L233.4,72.9 L239.8,69.3 L242.2,66.3 L249.9,59.3 L257.2,55.8 L268.0,56.3Z"/>
+<path class="st" data-state="New Jersey" d="M266.6,136.4 L272.0,139.4 L270.0,145.4 L267.4,146.8 L266.0,150.0 L270.4,151.6 L270.7,154.0 L268.8,165.1 L263.8,173.5 L260.6,175.8 L257.7,181.1 L256.2,177.7 L251.5,176.0 L245.8,171.4 L245.4,167.9 L247.8,164.2 L252.1,162.5 L252.3,160.9 L257.2,157.5 L258.0,155.7 L253.5,151.5 L253.3,148.8 L251.3,148.2 L251.1,145.8 L253.6,142.1 L252.2,140.0 L256.3,135.6 L257.2,133.4 L259.3,131.9Z"/>
+<path class="st" data-state="Pennsylvania" d="M178.2,113.3 L178.2,118.5 L248.7,118.5 L250.4,121.4 L251.6,121.3 L253.6,123.7 L253.2,126.7 L256.1,130.3 L258.6,130.4 L259.3,131.9 L257.2,133.4 L256.3,135.6 L252.2,140.0 L253.6,142.1 L251.1,145.8 L251.3,148.2 L253.3,148.8 L253.5,151.5 L258.0,155.7 L257.2,157.5 L252.3,160.9 L252.1,162.5 L247.8,164.2 L244.5,163.7 L241.8,165.9 L166.1,165.9 L166.1,119.0 L169.1,117.9 L178.2,113.0Z"/>
+<path class="st" data-state="Delaware" d="M247.8,164.2 L246.3,166.7 L244.6,168.1 L245.0,171.4 L247.3,174.5 L247.9,179.6 L251.4,185.0 L252.9,185.2 L253.6,192.4 L243.3,192.1 L241.8,165.9 L244.5,163.7Z"/>
+<path class="st" data-state="Maryland" d="M182.8,165.9 L241.8,165.9 L243.3,192.1 L253.6,192.4 L250.5,201.1 L240.2,203.6 L240.3,200.2 L239.0,198.9 L240.9,197.4 L238.4,194.0 L237.6,195.4 L234.3,195.1 L233.1,191.3 L234.2,191.3 L234.3,186.4 L235.3,184.5 L233.9,177.9 L235.7,174.0 L238.4,173.3 L238.8,169.4 L236.8,169.8 L236.7,171.9 L232.5,174.5 L231.3,176.9 L231.0,182.9 L229.5,185.8 L230.2,190.5 L232.3,193.8 L232.0,196.4 L233.3,198.9 L232.6,200.6 L228.9,197.3 L223.7,195.7 L222.1,192.5 L219.1,194.3 L218.0,191.8 L220.3,188.6 L221.7,185.3 L223.9,183.1 L221.8,181.1 L220.5,182.3 L218.4,180.4 L215.1,179.4 L215.1,176.3 L213.3,174.6 L210.9,174.3 L209.0,168.4 L206.3,168.4 L203.6,166.5 L202.1,168.1 L199.5,168.0 L198.9,170.3 L194.1,168.8 L191.0,171.9 L188.9,171.2 L185.7,174.7 L182.6,176.6Z"/>
+<path class="st" data-state="Michigan" d="M119.1,124.1 L97.5,124.9 L97.5,123.6 L65.2,123.6 L68.5,120.8 L70.7,116.2 L72.7,113.3 L74.2,109.3 L75.1,103.6 L74.7,97.5 L70.0,85.4 L71.5,80.8 L70.4,75.4 L74.1,69.8 L74.9,65.1 L74.4,62.6 L77.0,61.6 L77.3,58.2 L81.5,57.3 L84.6,53.5 L84.3,61.0 L86.0,61.4 L88.1,57.6 L88.2,51.2 L89.5,49.6 L93.9,48.6 L92.5,44.2 L95.4,40.4 L99.0,40.2 L103.0,42.6 L107.0,42.9 L108.9,45.9 L111.9,46.1 L116.9,48.8 L118.6,48.7 L121.3,53.2 L119.1,55.5 L121.2,58.6 L122.0,62.2 L121.1,69.9 L117.8,71.8 L117.0,75.8 L113.2,77.2 L111.1,82.0 L111.9,83.8 L115.7,85.5 L118.7,82.9 L122.2,77.5 L127.7,75.5 L130.4,77.1 L132.1,80.0 L133.8,88.7 L134.0,93.0 L135.8,98.3 L134.1,105.8 L131.5,106.9 L131.4,104.2 L129.6,105.0 L127.6,111.3 L124.4,113.6 L123.4,118.4 L119.4,122.4Z M86.3,41.0 L86.5,43.5 L84.4,43.9 L85.3,40.4Z M53.0,54.2 L50.5,52.0 L52.0,49.1 L48.2,48.6 L49.7,45.8 L49.9,42.1 L46.6,39.6 L44.7,37.0 L37.9,34.9 L35.8,35.6 L29.0,32.5 L12.5,28.3 L10.7,24.8 L7.8,23.5 L14.0,21.4 L16.8,18.9 L23.8,17.8 L28.3,14.8 L30.4,14.6 L32.2,12.5 L37.2,9.4 L39.7,6.8 L43.5,5.1 L47.1,6.6 L40.8,12.9 L39.3,15.1 L39.4,19.0 L42.5,16.0 L48.0,16.5 L52.3,18.5 L56.1,24.2 L58.2,25.2 L62.3,24.3 L63.2,25.6 L67.3,26.3 L75.8,21.5 L80.3,21.0 L86.3,21.3 L90.3,19.7 L93.4,19.5 L94.0,25.4 L97.1,26.2 L100.3,25.2 L101.6,26.6 L103.7,24.9 L108.4,24.3 L108.4,31.6 L110.5,34.7 L113.7,35.5 L114.0,33.4 L117.1,33.4 L118.8,35.6 L117.4,37.2 L108.6,35.8 L104.4,36.8 L99.9,34.2 L98.5,36.5 L99.2,38.5 L97.1,38.0 L94.2,35.2 L89.0,33.4 L86.4,33.3 L83.8,36.1 L79.6,36.8 L75.1,36.2 L73.2,37.3 L72.8,39.6 L67.8,41.5 L68.0,38.8 L65.9,38.2 L65.0,41.1 L61.3,41.2 L59.6,42.4 L57.2,47.3 L52.6,53.6Z M33.5,-5.7 L29.5,-3.1 L27.4,-2.8 L27.6,-4.9 L37.6,-9.8 L35.7,-6.4Z"/>
+<path class="st" data-state="Indiana" d="M78.6,123.6 L97.5,123.6 L97.3,178.8 L96.1,179.7 L97.4,185.4 L94.6,185.5 L91.6,187.5 L87.5,186.6 L87.7,190.7 L85.0,192.4 L83.9,195.0 L81.1,196.0 L79.6,201.3 L77.8,202.6 L74.2,200.7 L73.6,198.3 L70.1,200.9 L70.3,203.2 L66.7,204.0 L65.7,201.9 L61.6,204.0 L60.3,206.2 L56.3,203.1 L54.2,203.8 L52.8,202.3 L51.5,203.8 L47.5,204.0 L46.0,205.9 L45.4,204.6 L46.4,199.7 L47.6,198.6 L47.2,196.0 L49.0,195.7 L51.9,191.2 L52.4,188.5 L54.5,185.5 L54.2,181.9 L52.2,177.4 L53.9,173.7 L54.0,124.6 L55.6,126.0 L60.5,126.0 L65.2,123.6Z"/>
+<path class="st" data-state="Ohio" d="M166.1,119.0 L166.1,146.9 L163.7,148.1 L164.9,150.3 L164.8,153.5 L162.6,158.5 L161.1,166.2 L154.9,172.9 L152.9,173.8 L151.1,172.4 L149.3,175.4 L147.4,175.3 L145.4,179.3 L145.9,181.7 L144.2,183.6 L141.8,180.4 L138.8,185.4 L139.6,188.6 L137.7,189.7 L137.1,192.5 L132.9,192.9 L130.7,190.1 L128.9,189.5 L128.2,186.0 L125.9,186.7 L124.1,188.7 L118.1,187.1 L115.5,188.6 L111.9,185.8 L107.0,185.0 L106.7,183.1 L103.4,178.8 L97.3,178.8 L97.5,124.9 L119.1,124.1 L125.4,127.0 L127.5,128.7 L129.0,127.1 L132.5,130.4 L134.7,131.4 L142.2,128.7 L146.6,129.3 L151.3,125.4 L158.2,121.6Z"/>
+<path class="st" data-state="Kentucky" d="M111.9,185.8 L115.5,188.6 L118.1,187.1 L124.1,188.7 L125.9,186.7 L128.2,186.0 L128.9,189.5 L130.7,190.1 L132.9,192.9 L132.5,199.2 L134.4,203.2 L136.9,206.3 L137.7,208.7 L140.8,211.0 L142.9,211.4 L136.7,217.0 L130.9,220.0 L130.9,221.6 L128.5,223.0 L128.3,224.8 L125.3,225.6 L124.2,227.9 L115.4,231.2 L68.9,229.7 L48.8,230.2 L45.3,229.3 L45.5,233.0 L23.7,233.0 L24.6,230.4 L26.9,231.3 L28.3,222.9 L27.5,221.8 L29.9,218.1 L31.8,217.9 L37.6,221.1 L39.7,219.4 L38.2,216.6 L38.8,214.5 L45.3,212.5 L43.9,208.9 L47.5,204.0 L51.5,203.8 L52.8,202.3 L54.2,203.8 L56.3,203.1 L60.3,206.2 L61.6,204.0 L65.7,201.9 L66.7,204.0 L70.3,203.2 L70.1,200.9 L73.6,198.3 L74.2,200.7 L77.8,202.6 L79.6,201.3 L81.1,196.0 L83.9,195.0 L85.0,192.4 L87.7,190.7 L87.5,186.6 L91.6,187.5 L94.6,185.5 L97.4,185.4 L96.1,179.7 L97.3,178.8 L103.4,178.8 L106.7,183.1 L107.0,185.0Z"/>
+<path class="st" data-state="West Virginia" d="M166.1,146.9 L166.1,165.9 L182.8,165.9 L182.6,176.6 L185.7,174.7 L188.9,171.2 L191.0,171.9 L194.1,168.8 L198.9,170.3 L199.5,168.0 L202.1,168.1 L203.6,166.5 L206.3,168.4 L209.0,168.4 L210.9,174.3 L209.1,178.2 L200.8,171.3 L199.9,177.4 L192.5,185.9 L190.5,184.0 L187.0,191.5 L185.4,193.2 L182.8,192.3 L180.0,189.4 L178.8,194.2 L175.7,198.1 L174.4,201.8 L171.4,204.9 L169.7,208.2 L169.6,212.0 L166.8,213.8 L166.2,212.5 L158.9,216.5 L154.8,217.7 L152.6,215.5 L149.5,218.2 L147.5,218.3 L144.8,216.6 L142.6,213.1 L142.9,211.4 L140.8,211.0 L137.7,208.7 L136.9,206.3 L134.4,203.2 L132.5,199.2 L132.9,192.9 L137.1,192.5 L137.7,189.7 L139.6,188.6 L138.8,185.4 L141.8,180.4 L144.2,183.6 L145.9,181.7 L145.4,179.3 L147.4,175.3 L149.3,175.4 L151.1,172.4 L152.9,173.8 L154.9,172.9 L161.1,166.2 L162.6,158.5 L164.8,153.5 L164.9,150.3 L163.7,148.1Z"/>
+<path class="st" data-state="Virginia" d="M248.0,201.5 L250.5,201.1 L248.4,204.7 L246.2,205.9 L244.9,210.7 L241.6,218.5 L238.8,220.0 L238.0,217.2 L239.4,210.8 L243.7,202.7Z M200.8,171.3 L209.1,178.2 L210.9,174.3 L213.3,174.6 L215.1,176.3 L215.1,179.4 L218.4,180.4 L220.5,182.3 L221.7,185.3 L220.3,188.6 L218.4,189.5 L217.2,192.5 L217.9,194.6 L222.2,194.0 L223.0,197.3 L228.6,198.6 L230.2,201.3 L234.6,204.1 L232.6,209.9 L234.5,214.5 L232.3,216.6 L232.0,219.3 L234.0,220.8 L231.8,223.4 L228.5,220.0 L227.7,221.2 L230.6,223.6 L238.5,224.1 L240.5,231.9 L182.2,232.1 L147.5,231.1 L115.6,230.9 L124.2,227.9 L125.3,225.6 L128.3,224.8 L128.5,223.0 L130.9,221.6 L130.9,220.0 L136.7,217.0 L142.9,211.4 L142.6,213.1 L144.8,216.6 L147.5,218.3 L149.5,218.2 L152.6,215.5 L154.8,217.7 L158.9,216.5 L166.2,212.5 L166.8,213.8 L169.6,212.0 L169.7,208.2 L171.4,204.9 L174.4,201.8 L175.7,198.1 L178.8,194.2 L180.0,189.4 L182.8,192.3 L185.4,193.2 L187.0,191.5 L190.5,184.0 L192.5,185.9 L199.9,177.4Z"/>
+<path class="assist" data-for="Delaware" d="M247.8,164.2 L246.3,166.7 L244.6,168.1 L245.0,171.4 L247.3,174.5 L247.9,179.6 L251.4,185.0 L252.9,185.2 L253.6,192.4 L243.3,192.1 L241.8,165.9 L244.5,163.7Z"/>
+<path class="assist" data-for="Rhode Island" d="M309.9,118.2 L312.3,118.2 L313.1,123.1 L314.8,124.6 L312.9,124.2 L311.2,127.3 L310.7,131.6 L304.6,132.7 L305.6,130.7 L305.6,118.4Z"/>
+        </svg>
+      </div>
+      <div class="choices hidden" id="choices"></div>
+      <div class="spellrow hidden" id="spellrow">
+        <input id="spell" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" aria-label="Type the capital city">
+        <button class="btn" id="check">Check</button>
+      </div>
+      <div class="letters" id="letters"></div>
+      <p class="feedback" id="feedback" aria-live="polite"></p>
+      <div class="next-row"><button class="btn ghost hidden" id="next">Next question</button></div>
+    </div>
+
+    <div id="summary" class="summary hidden">
+      <h2 id="sum-title">Trail complete!</h2>
+      <div class="big" id="sum-score"></div>
+      <p id="sum-note" style="font-weight:700;margin-top:6px"></p>
+      <div class="missed hidden" id="sum-missed"></div>
+      <div class="next-row"><button class="btn" id="again">Hike it again</button></div>
+    </div>
+  </div>
+  <footer>Round of 13 &bull; anything missed comes back at the end until it&rsquo;s right</footer>
+</div>
+
+<script>
+const DATA = [
+  ["Maine","Augusta"],["New Hampshire","Concord"],["Vermont","Montpelier"],["Massachusetts","Boston"],["Connecticut","Hartford"],["Rhode Island","Providence"],["New York","Albany"],["New Jersey","Trenton"],["Pennsylvania","Harrisburg"],["Delaware","Dover"],["Maryland","Annapolis"],["Michigan","Lansing"],["Indiana","Indianapolis"],["Ohio","Columbus"],["Kentucky","Frankfort"],["West Virginia","Charleston"],["Virginia","Richmond"]
+];
+const $ = id => document.getElementById(id);
+const stateEls = {};
+document.querySelectorAll(".st").forEach(el => stateEls[el.dataset.state] = el);
+
+let mode = "find", queue = [], missed = [], score = 0, asked = 0, total = 13,
+    current = null, attempts = 0, locked = false;
+
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function clearMap(){ Object.values(stateEls).forEach(e => e.classList.remove("hl","dim","flash-ok","flash-no")); }
+
+function startRound(){
+  queue = mode === "spell"
+    ? shuffle([...DATA, ...DATA.slice(0, 9).map(d => [d[0], d[0], "state"])]).slice(0, 15)
+    : shuffle(DATA);
+  missed = []; score = 0; asked = 0; total = queue.length;
+  $("summary").classList.add("hidden"); $("quiz-area").classList.remove("hidden");
+  $("qtot").textContent = total; $("score").textContent = 0;
+  nextQuestion();
+}
+
+function nextQuestion(){
+  if(queue.length === 0){
+    if(missed.length){ queue = shuffle(missed); missed = []; total += queue.length; $("qtot").textContent = total; }
+    else return showSummary();
+  }
+  current = queue.shift(); asked++; attempts = 0; locked = false;
+  $("qnum").textContent = asked;
+  $("feedback").textContent = ""; $("feedback").className = "feedback";
+  $("next").classList.add("hidden"); $("letters").innerHTML = "";
+  clearMap();
+  $("card").classList.toggle("mode-find", mode === "find");
+  $("choices").classList.add("hidden"); $("spellrow").classList.add("hidden");
+
+  const [state, capital] = current;
+  if(mode === "find"){
+    $("prompt").innerHTML = 'Tap <span class="word">' + state + '</span> on the map';
+  } else if(mode === "capital"){
+    stateEls[state].classList.add("hl");
+    $("prompt").innerHTML = 'What is the capital of <span class="word">' + state + '</span>?';
+    buildChoices(capital, DATA.map(d => d[1]));
+  } else {
+    stateEls[state].classList.add("hl");
+    $("prompt").innerHTML = current[2] === "state"
+      ? 'Spell this <span class="word">state\u2019s name</span>'
+      : 'Spell the capital of <span class="word">' + state + '</span>';
+    $("spellrow").classList.remove("hidden");
+    $("spell").value = ""; $("spell").disabled = false; $("check").disabled = false;
+    setTimeout(() => $("spell").focus(), 50);
+  }
+}
+
+function buildChoices(answer, pool){
+  const wrong = shuffle(pool.filter(c => c !== answer)).slice(0,3);
+  const opts = shuffle([answer, ...wrong]);
+  const box = $("choices"); box.innerHTML = ""; box.classList.remove("hidden");
+  opts.forEach(text => {
+    const b = document.createElement("button");
+    b.className = "choice"; b.textContent = text;
+    b.onclick = () => pickChoice(b, text === answer, answer);
+    box.appendChild(b);
+  });
+}
+
+function pickChoice(btn, correct, answer){
+  if(locked) return; locked = true;
+  document.querySelectorAll(".choice").forEach(b => {
+    b.disabled = true;
+    if(b.textContent === answer) b.classList.add("ok");
+  });
+  if(correct){ score++; $("score").textContent = score; say("Nice! " + praise(), true); }
+  else { btn.classList.add("no"); missed.push(current); say("It's " + answer + " — this one will come back around.", false); }
+  $("next").classList.remove("hidden"); $("next").focus();
+}
+
+function mapTap(name){
+  if(mode !== "find" || locked) return; locked = true;
+  const target = current[0];
+  if(name === target){
+    stateEls[target].classList.add("flash-ok");
+    score++; $("score").textContent = score; say("Found it! " + praise(), true);
+  } else {
+    stateEls[name].classList.add("flash-no");
+    stateEls[target].classList.add("flash-ok");
+    missed.push(current);
+    say("That was " + name + ". " + target + " is the green one — it'll come back around.", false);
+  }
+  $("next").classList.remove("hidden"); $("next").focus();
+}
+
+const norm = s => s.toLowerCase().replace(/\./g,"").replace(/\bsaint\b/g,"st").replace(/\s+/g," ").trim();
+function checkSpelling(){
+  if(locked) return;
+  const guess = $("spell").value; if(!norm(guess)) return;
+  const answer = current[1];
+  if(norm(guess) === norm(answer)){
+    locked = true; score++; $("score").textContent = score;
+    renderLetters(answer, answer);
+    say("Perfect spelling! " + praise(), true);
+    finishSpell();
+  } else {
+    attempts++;
+    renderLetters(guess, answer);
+    if(attempts >= 2){
+      locked = true; missed.push(current);
+      say("It's spelled " + answer + " — it'll come back around.", false);
+      renderLetters(answer, answer);
+      finishSpell();
+    } else {
+      say("Green letters are in the right spot. One more try!", false);
+      $("spell").select();
+    }
+  }
+}
+function finishSpell(){
+  $("spell").disabled = true; $("check").disabled = true;
+  $("next").classList.remove("hidden"); $("next").focus();
+}
+function renderLetters(guess, answer){
+  const box = $("letters"); box.innerHTML = "";
+  const g = guess, a = answer;
+  const len = Math.max(g.length, a.length);
+  for(let i = 0; i < len; i++){
+    const gc = g[i] || "", ac = a[i] || "";
+    const d = document.createElement("div");
+    if(ac === " " && gc === " "){ d.className = "lt sp"; box.appendChild(d); continue; }
+    d.className = "lt " + (gc.toLowerCase() === ac.toLowerCase() && gc !== "" ? "ok" : "no");
+    d.textContent = gc || "_";
+    box.appendChild(d);
+  }
+}
+
+const PRAISE = ["You're on the trail!","Summit ahead!","Map master!","Keep hiking!","Golden!","Trailblazer!"];
+function praise(){ return PRAISE[Math.floor(Math.random()*PRAISE.length)]; }
+function say(msg, good){
+  const f = $("feedback"); f.textContent = msg;
+  f.className = "feedback " + (good ? "good" : "bad");
+}
+
+function showSummary(){
+  $("quiz-area").classList.add("hidden");
+  $("summary").classList.remove("hidden");
+  $("sum-score").textContent = score + " / " + total;
+  const perfect = score === total;
+  $("sum-title").textContent = perfect ? "Perfect hike!" : "Trail complete!";
+  $("sum-note").textContent = perfect
+    ? "Every state, first try. Ready for the real test."
+    : "You got everything right by the end — a few needed extra tries.";
+  $("sum-missed").classList.add("hidden");
+}
+
+document.querySelectorAll(".tab").forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected","false"));
+    t.setAttribute("aria-selected","true");
+    mode = t.dataset.mode;
+    startRound();
+  };
+});
+Object.entries(stateEls).forEach(([name, el]) => {
+  el.addEventListener("click", () => mapTap(name));
+});
+document.querySelectorAll(".assist").forEach(p => p.addEventListener("click", () => mapTap(p.dataset.for)));
+$("next").onclick = nextQuestion;
+$("again").onclick = startRound;
+$("check").onclick = checkSpelling;
+$("spell").addEventListener("keydown", e => { if(e.key === "Enter") checkSpelling(); });
+
+startRound();
+</script>
+</body>
+</html>
